@@ -1,6 +1,8 @@
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string | undefined
 const publishableKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string | undefined
-const functionName = (import.meta.env.VITE_PUBLIC_BOOKING_FUNCTION as string | undefined) || 'public-booking'
+const functionName =
+  (import.meta.env.VITE_PUBLIC_BOOKING_FUNCTION as string | undefined) ||
+  'public-booking'
 
 export type BookingPatient = {
   fullName: string
@@ -19,6 +21,7 @@ export type BookingSelection = {
   professionalName: string
   date: string
   time: string
+  startAt?: string
 }
 
 export type BookingRequest = {
@@ -27,72 +30,160 @@ export type BookingRequest = {
   notes?: string
 }
 
-export type BookingResponse = {
-  ok: boolean
-  bookingId?: string
-  protocol?: string
-  message?: string
-  raw?: unknown
-}
-
 async function callPublicBooking(body: Record<string, unknown>) {
   if (!supabaseUrl || !publishableKey) {
-    throw new Error('Integração de autoagendamento ainda não configurada neste ambiente.')
+    throw new Error(
+      'Integração de autoagendamento ainda não configurada.',
+    )
   }
 
-  const response = await fetch(`${supabaseUrl}/functions/v1/${functionName}`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      apikey: publishableKey,
-      Authorization: `Bearer ${publishableKey}`,
+  const response = await fetch(
+    `${supabaseUrl}/functions/v1/${functionName}`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        apikey: publishableKey,
+        Authorization: `Bearer ${publishableKey}`,
+      },
+      body: JSON.stringify(body),
     },
-    body: JSON.stringify(body),
-  })
+  )
 
   const text = await response.text()
-  let data: unknown = null
+
+  let data: any = {}
+
   try {
-    data = text ? JSON.parse(text) : null
+    data = text ? JSON.parse(text) : {}
   } catch {
-    data = { message: text }
+    data = { error: text }
   }
 
   if (!response.ok) {
-    const message = typeof data === 'object' && data && 'message' in data ? String((data as { message?: unknown }).message) : `Erro ${response.status}`
-    throw new Error(message)
+    throw new Error(
+      data?.error ||
+      data?.message ||
+      `Erro ${response.status}`,
+    )
   }
 
   return data
 }
 
-export async function fetchBookingBootstrap() {
-  return callPublicBooking({ action: 'bootstrap' })
+export async function identifyPatient(
+  cpf: string,
+  phone: string,
+) {
+  return callPublicBooking({
+    action: 'identify',
+    cpf,
+    phone,
+  })
 }
 
-export async function identifyPatient(patient: BookingPatient) {
-  return callPublicBooking({ action: 'identify_patient', patient })
+export async function checkExistingPatient(
+  cpf?: string,
+  phone?: string,
+) {
+  return callPublicBooking({
+    action: 'check_existing',
+    cpf: cpf || null,
+    phone: phone || null,
+  })
 }
 
-export async function fetchAvailability(filters: Record<string, unknown>) {
-  return callPublicBooking({ action: 'availability', ...filters })
+export async function fetchBookingCatalog() {
+  return callPublicBooking({
+    action: 'catalog',
+  })
 }
 
-export async function createBooking(request: BookingRequest): Promise<BookingResponse> {
-  const raw = await callPublicBooking({ action: 'create_booking', ...request })
-  if (typeof raw === 'object' && raw) {
-    const r = raw as Record<string, unknown>
-    return {
-      ok: r.ok !== false,
-      bookingId: r.bookingId ? String(r.bookingId) : r.id ? String(r.id) : undefined,
-      protocol: r.protocol ? String(r.protocol) : undefined,
-      message: r.message ? String(r.message) : undefined,
-      raw,
-    }
-  }
-  return { ok: true, raw }
+export async function fetchBookingSlots(input: {
+  serviceId: string
+  locationId: string
+  providerId?: string
+  from: string
+  to: string
+}) {
+  return callPublicBooking({
+    action: 'slots',
+    service_id: input.serviceId,
+    location_id: input.locationId,
+    provider_id: input.providerId || null,
+    from: input.from,
+    to: input.to,
+  })
 }
 
-export async function manageBooking(input: Record<string, unknown>) {
-  return callPublicBooking({ action: 'manage_booking', ...input })
+export async function createBooking(
+  request: BookingRequest,
+) {
+  return callPublicBooking({
+    action: 'create',
+
+    full_name:
+      request.patient.fullName,
+
+    phone:
+      request.patient.phone,
+
+    birth_date:
+      request.patient.birthDate || null,
+
+    cpf:
+      request.patient.cpf || null,
+
+    email:
+      request.patient.email || null,
+
+    service_id:
+      request.selection.serviceId,
+
+    provider_id:
+      request.selection.professionalId,
+
+    location_id:
+      request.selection.locationId,
+
+    start_at:
+      request.selection.startAt,
+
+    patient_message:
+      request.notes || null,
+  })
+}
+
+export async function fetchReceipt(token: string) {
+  return callPublicBooking({
+    action: 'receipt',
+    token,
+  })
+}
+
+export async function rescheduleBooking(
+  input: Record<string, unknown>,
+) {
+  return callPublicBooking({
+    action: 'reschedule',
+    ...input,
+  })
+}
+
+export async function cancelBooking(
+  input: Record<string, unknown>,
+) {
+  return callPublicBooking({
+    action: 'cancel',
+    ...input,
+  })
+}
+
+export async function manageBooking(
+  input: Record<string, unknown>,
+) {
+  return callPublicBooking({
+    action: 'manage_booking',
+    ...input,
+  })
 }
