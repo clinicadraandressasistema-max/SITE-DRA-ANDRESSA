@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="900" viewBox="0 0 1200 900">
+  <defs><linearGradient id="g" x1="0" x2="1"><stop stop-color="#f4e4e7"/><stop offset="1" stop-color="#e7c9cf"/></linearGradient></defs>
+  <rect width="1200" height="900" fill="url(#g)"/><circle cx="860" cy="220" r="260" fill="#8a2038" opacity=".08"/><circle cx="250" cy="720" r="300" fill="#c98f9e" opacity=".13"/>
+  <text x="80" y="735" font-size="50" font-family="Arial" fill="#6e1730">FOTOS DE RESULTADOS</text><text x="82" y="790" font-size="24" font-family="Arial" fill="#7f6870">Substitua este arquivo por uma imagem autorizada.</text>
+</svg>

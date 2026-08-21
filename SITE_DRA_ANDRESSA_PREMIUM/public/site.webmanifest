@@ -1,0 +1,11 @@
+{
+  "name": "Dra. Andressa Dallarmi",
+  "short_name": "Dra. Andressa",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#fbf7f4",
+  "theme_color": "#6e1730",
+  "icons": [
+    { "src": "/brand/logo.png", "sizes": "300x300", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

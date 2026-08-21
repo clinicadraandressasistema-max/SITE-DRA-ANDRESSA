@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="900" viewBox="0 0 1200 900">
+  <defs><linearGradient id="g" x1="0" x2="1"><stop stop-color="#641126"/><stop offset="1" stop-color="#9c4056"/></linearGradient></defs>
+  <rect width="1200" height="900" fill="url(#g)"/><circle cx="600" cy="390" r="110" fill="#fff" opacity=".16"/><path d="M575 335l90 55-90 55z" fill="#fff"/>
+  <text x="80" y="735" font-size="50" font-family="Arial" fill="#fff">VÍDEOS & CONTEÚDO</text><text x="82" y="790" font-size="24" font-family="Arial" fill="#f6dce2">YouTube, Drive público ou arquivo hospedado no projeto.</text>
+</svg>
