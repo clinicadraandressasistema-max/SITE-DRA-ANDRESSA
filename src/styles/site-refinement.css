@@ -1257,3 +1257,48 @@ html.restricted-access-active .site-shell {
       !important;
   }
 }
+
+
+/* ==========================================================
+   BLOCO 05 - IMAGENS CARDS DESTAQUES VISIVEIS
+   ========================================================== */
+
+.feature-international {
+  background-image:
+    linear-gradient(
+      rgba(255,255,255,.28),
+      rgba(255,255,255,.42)
+    ),
+    url('/media/images/destaques/experiencia-internacional.png')
+    !important;
+
+  background-size: cover !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+}
+
+.feature-natural {
+  background-image:
+    linear-gradient(
+      rgba(255,255,255,.28),
+      rgba(255,255,255,.42)
+    ),
+    url('/media/images/destaques/naturalidade.png')
+    !important;
+
+  background-size: cover !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+}
+
+/* Mantém textos legíveis sobre as fotos */
+.feature-international strong,
+.feature-natural strong {
+  text-shadow: 0 1px 12px rgba(255,255,255,.75);
+}
+
+.feature-international span,
+.feature-natural span {
+  text-shadow: 0 1px 10px rgba(255,255,255,.80);
+}
+
