@@ -67,7 +67,7 @@ export default function Services() {
                   <div
                     className="service-media-showcase"
                     style={{
-                      backgroundImage: `linear-gradient(180deg, rgba(52,7,18,.08), rgba(52,7,18,.68)), url('/media/images/servicos/${service.id}.jpg')`,
+                      backgroundImage: `url('/media/images/servicos/${service.id}.png')`,
                     }}
                   >
                     <span>{service.eyebrow}</span>
