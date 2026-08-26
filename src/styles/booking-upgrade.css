@@ -479,3 +479,215 @@
   }
 }
 
+
+
+/* ==========================================================
+   BLOCO AUTOAGENDAMENTO FOTO DRA
+   ========================================================== */
+
+.booking-top {
+  position: relative;
+  overflow: hidden;
+}
+
+.booking-title-grid {
+  display: grid !important;
+  grid-template-columns:
+    minmax(0, 1.08fr)
+    minmax(360px, .92fr) !important;
+
+  gap: clamp(30px, 5vw, 75px) !important;
+  align-items: center !important;
+}
+
+/* Texto */
+.booking-title-grid > .reveal:first-child {
+  position: relative;
+  z-index: 5;
+}
+
+/* Área da Dra */
+.booking-doctor-visual {
+  position: relative;
+  z-index: 3;
+
+  min-height: 565px;
+
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+/* Painel suave atrás da Dra */
+.booking-doctor-panel {
+  position: relative;
+
+  width: min(500px, 100%);
+  height: 490px;
+
+  border-radius: 46px;
+
+  border:
+    1px solid rgba(255,255,255,.17);
+
+  background:
+    radial-gradient(
+      circle at 60% 15%,
+      rgba(255,255,255,.16),
+      transparent 34%
+    ),
+    linear-gradient(
+      145deg,
+      rgba(255,255,255,.08),
+      rgba(255,255,255,.018)
+    );
+
+  box-shadow:
+    0 35px 80px rgba(34,0,10,.16);
+
+  overflow: visible;
+}
+
+/* PNG da Dra */
+.booking-doctor-image {
+  position: absolute;
+
+  left: 50%;
+  bottom: -2px;
+
+  transform:
+    translateX(-50%)
+    perspective(1000px)
+    translateZ(8px);
+
+  width: auto;
+  height: 116%;
+  max-width: none;
+
+  object-fit: contain;
+  object-position: center bottom;
+
+  pointer-events: none;
+  user-select: none;
+
+  filter:
+    drop-shadow(
+      0 12px 8px
+      rgba(40,0,12,.09)
+    )
+    drop-shadow(
+      0 30px 30px
+      rgba(35,0,10,.22)
+    )
+    drop-shadow(
+      0 50px 60px
+      rgba(30,0,8,.12)
+    );
+
+  animation:
+    bookingDoctorEntrance
+    .8s
+    cubic-bezier(.18,.78,.25,1)
+    both;
+}
+
+@keyframes bookingDoctorEntrance {
+  from {
+    opacity: 0;
+    transform:
+      translateX(-50%)
+      translateY(28px)
+      scale(.97);
+  }
+
+  to {
+    opacity: 1;
+    transform:
+      translateX(-50%)
+      translateY(0)
+      scale(1);
+  }
+}
+
+
+/* ==========================================================
+   TABLET
+   ========================================================== */
+
+@media (max-width: 1050px) {
+
+  .booking-title-grid {
+    grid-template-columns:
+      minmax(0,1fr)
+      minmax(310px,.8fr)
+      !important;
+
+    gap: 25px !important;
+  }
+
+  .booking-doctor-visual {
+    min-height: 500px;
+  }
+
+  .booking-doctor-panel {
+    height: 430px;
+  }
+
+  .booking-doctor-image {
+    height: 110%;
+  }
+}
+
+
+/* ==========================================================
+   MOBILE
+   ========================================================== */
+
+@media (max-width: 780px) {
+
+  .booking-title-grid {
+    grid-template-columns:
+      1fr !important;
+
+    gap: 18px !important;
+  }
+
+  .booking-doctor-visual {
+    min-height: 390px;
+    margin-top: 18px;
+  }
+
+  .booking-doctor-panel {
+    width: min(420px, 94%);
+    height: 350px;
+
+    border-radius: 34px;
+  }
+
+  .booking-doctor-image {
+    height: 108%;
+    max-width: 120%;
+  }
+}
+
+
+/* ==========================================================
+   CELULARES PEQUENOS
+   ========================================================== */
+
+@media (max-width: 480px) {
+
+  .booking-doctor-visual {
+    min-height: 330px;
+  }
+
+  .booking-doctor-panel {
+    height: 300px;
+    width: 95%;
+  }
+
+  .booking-doctor-image {
+    height: 105%;
+  }
+}
+
