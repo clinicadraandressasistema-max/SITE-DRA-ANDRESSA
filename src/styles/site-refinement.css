@@ -1,0 +1,874 @@
+/* ==========================================================
+   SITE DRA. ANDRESSA - REFINAMENTO PUBLICO
+   ========================================================== */
+
+/* HERO: o card flutuante nao cobre mais Brasil/Portugal/Israel */
+.hero-art .hero-floating-card {
+  right: 18px;
+  top: 18px;
+  bottom: auto;
+  max-width: calc(100% - 36px);
+  z-index: 3;
+}
+
+/* Cards internacionais com imagem de fundo suave e conteudo centralizado */
+.editorial-stack {
+  align-self: stretch;
+}
+
+.mini-feature.mini-feature-image {
+  min-height: 220px;
+  padding: 34px 28px;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  flex-direction: column;
+  background-position: center;
+  background-size: cover;
+  border: 1px solid rgba(255, 255, 255, .72);
+  box-shadow: 0 18px 45px rgba(35, 5, 14, .09);
+  overflow: hidden;
+}
+
+.mini-feature.mini-feature-image > div {
+  align-items: center;
+}
+
+.mini-feature.mini-feature-image svg {
+  width: 26px;
+  height: 26px;
+  margin-bottom: 4px;
+}
+
+.mini-feature.mini-feature-image strong {
+  font-size: 1.75rem;
+}
+
+.mini-feature.mini-feature-image span {
+  font-size: .82rem;
+  line-height: 1.55;
+  max-width: 270px;
+}
+
+.feature-international {
+  background-image:
+    linear-gradient(rgba(255,255,255,.88), rgba(255,255,255,.94)),
+    url('/media/images/destaques/experiencia-internacional.jpg') !important;
+}
+
+.feature-natural {
+  background-image:
+    linear-gradient(rgba(255,255,255,.88), rgba(255,255,255,.94)),
+    url('/media/images/destaques/naturalidade.jpg') !important;
+}
+
+/* SOBRE A DRA.: fotografia mesclada ao banner */
+.about-hero-grid {
+  grid-template-columns: minmax(0, 1.04fr) minmax(360px, .96fr);
+  align-items: center;
+}
+
+.about-hero-portrait {
+  position: relative;
+  min-height: 520px;
+  border-radius: 38px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.18);
+  box-shadow: 0 35px 80px rgba(29, 0, 8, .28);
+  background-image:
+    linear-gradient(180deg, rgba(52,8,20,.05) 20%, rgba(52,8,20,.88) 100%),
+    url('/media/images/dra-andressa/dra-andressa-principal.jpg');
+  background-size: cover;
+  background-position: center 18%;
+}
+
+.about-hero-portrait::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, rgba(55,8,19,.28), transparent 42%),
+    radial-gradient(circle at 75% 15%, rgba(255,255,255,.16), transparent 30%);
+  pointer-events: none;
+}
+
+.about-photo-caption {
+  position: absolute;
+  z-index: 2;
+  left: 28px;
+  right: 28px;
+  bottom: 28px;
+  padding: 22px;
+  border-radius: 22px;
+  border: 1px solid rgba(255,255,255,.2);
+  background: rgba(59, 8, 21, .52);
+  backdrop-filter: blur(14px);
+}
+
+.about-photo-caption > span {
+  display: block;
+  font-family: 'Cormorant Garamond', serif;
+  color: #fff;
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.about-photo-caption > p {
+  color: #f3d9df;
+  margin: 9px 0 0;
+  font-size: .88rem;
+  line-height: 1.6;
+}
+
+.about-photo-caption .credential-row {
+  margin-top: 14px;
+}
+
+.about-public-grid {
+  display: grid;
+  grid-template-columns: .72fr 1.28fr;
+  gap: 54px;
+  align-items: start;
+}
+
+.about-philosophy-card {
+  position: sticky;
+  top: 118px;
+  padding: 38px;
+  border-radius: 30px;
+  border: 1px solid var(--line);
+  background:
+    radial-gradient(circle at 100% 0, rgba(213,155,84,.12), transparent 32%),
+    linear-gradient(145deg, #fff, #fbf4f5);
+  box-shadow: 0 20px 50px rgba(63,18,32,.07);
+}
+
+.about-philosophy-card h2 {
+  font-family: 'Cormorant Garamond', serif;
+  color: var(--wine-950);
+  font-size: clamp(2.5rem, 4vw, 4.2rem);
+  line-height: .98;
+  margin: 18px 0 20px;
+}
+
+.about-philosophy-card p {
+  color: var(--muted);
+  line-height: 1.8;
+  margin: 0;
+}
+
+/* SERVICOS: area pronta para receber fotografia sem exibir texto operacional */
+.service-media-showcase {
+  position: relative;
+  min-height: 250px;
+  width: 100%;
+  padding: 24px;
+  border-radius: 24px;
+  overflow: hidden;
+  background-color: #7b233c;
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  color: #fff;
+  box-shadow: 0 18px 45px rgba(63,18,32,.12);
+  transition: transform .4s ease, box-shadow .4s ease;
+}
+
+.service-detail:hover .service-media-showcase {
+  transform: translateY(-4px);
+  box-shadow: 0 24px 58px rgba(63,18,32,.18);
+}
+
+.service-media-showcase span {
+  font-size: .65rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  font-weight: 800;
+  color: #f5d7df;
+}
+
+.service-media-showcase strong {
+  margin-top: 7px;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.8rem;
+  line-height: 1;
+}
+
+/* GALERIA: capa de album e abertura dentro do proprio site */
+.media-card-button {
+  width: 100%;
+  padding: 0;
+  text-align: left;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.album-cover {
+  display: flex;
+  align-items: flex-end;
+  background-color: #ead2d8;
+  background-position: center;
+  background-size: cover;
+}
+
+.album-cover-content {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 22px;
+  color: #fff;
+  font-size: .78rem;
+  font-weight: 800;
+  line-height: 1.4;
+}
+
+.media-card-action {
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--wine-700);
+}
+
+.media-card-action strong {
+  font-size: .75rem;
+}
+
+.gallery-modal-backdrop {
+  position: fixed;
+  z-index: 120;
+  inset: 0;
+  background: rgba(29, 5, 12, .72);
+  backdrop-filter: blur(10px);
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  animation: galleryBackdropIn .22s ease;
+}
+
+@keyframes galleryBackdropIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.gallery-modal {
+  width: min(1080px, 100%);
+  max-height: calc(100vh - 48px);
+  overflow: auto;
+  border-radius: 30px;
+  background: var(--ivory);
+  box-shadow: 0 35px 100px rgba(0,0,0,.35);
+  animation: galleryModalIn .28s cubic-bezier(.2,.7,.2,1);
+}
+
+@keyframes galleryModalIn {
+  from { opacity: 0; transform: translateY(14px) scale(.985); }
+  to { opacity: 1; transform: none; }
+}
+
+.gallery-modal-header {
+  position: sticky;
+  z-index: 3;
+  top: 0;
+  display: flex;
+  gap: 24px;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 30px 32px 26px;
+  border-bottom: 1px solid var(--line);
+  background: rgba(251,248,245,.94);
+  backdrop-filter: blur(16px);
+}
+
+.gallery-modal-header > div {
+  max-width: 760px;
+}
+
+.gallery-modal-header span {
+  color: var(--wine-700);
+  font-size: .66rem;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+  font-weight: 800;
+}
+
+.gallery-modal-header h2 {
+  margin: 7px 0 8px;
+  font-family: 'Cormorant Garamond', serif;
+  color: var(--wine-950);
+  font-size: clamp(2rem, 4vw, 3.4rem);
+  line-height: 1;
+}
+
+.gallery-modal-header p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.65;
+  font-size: .88rem;
+}
+
+.gallery-modal-header button {
+  flex: 0 0 auto;
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: #fff;
+  color: var(--wine-700);
+  display: grid;
+  place-items: center;
+}
+
+.gallery-modal-content {
+  display: grid;
+  gap: 22px;
+  padding: 28px 32px 36px;
+}
+
+.gallery-asset {
+  overflow: hidden;
+  border-radius: 24px;
+  border: 1px solid var(--line);
+  background: #fff;
+}
+
+.gallery-asset-media {
+  background: #1d1518;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+}
+
+.gallery-asset-media img,
+.gallery-asset-media video,
+.gallery-asset-media iframe {
+  width: 100%;
+  height: 100%;
+  display: block;
+  border: 0;
+  object-fit: contain;
+}
+
+.gallery-asset-copy {
+  padding: 22px 24px 24px;
+}
+
+.gallery-asset-copy h3 {
+  font-family: 'Cormorant Garamond', serif;
+  color: var(--wine-950);
+  font-size: 1.8rem;
+  margin: 0 0 8px;
+}
+
+.gallery-asset-copy p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.7;
+  font-size: .84rem;
+}
+
+.gallery-empty-public {
+  min-height: 330px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  text-align: center;
+  padding: 44px 24px;
+  color: var(--wine-700);
+}
+
+.gallery-empty-public h3 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 2.1rem;
+  color: var(--wine-950);
+  margin: 16px 0 8px;
+}
+
+.gallery-empty-public p {
+  max-width: 540px;
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+/* AVISO DE SEGURANCA PARA F12 E ATALHOS TECNICOS */
+.security-notice-backdrop {
+  position: fixed;
+  z-index: 200;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 22px;
+  background: rgba(27, 5, 12, .66);
+  backdrop-filter: blur(9px);
+  animation: galleryBackdropIn .18s ease;
+}
+
+.security-notice-card {
+  position: relative;
+  width: min(440px, 100%);
+  padding: 34px;
+  border-radius: 26px;
+  background: #fff;
+  border: 1px solid rgba(113,23,47,.15);
+  box-shadow: 0 30px 90px rgba(0,0,0,.28);
+  text-align: center;
+}
+
+.security-notice-close {
+  position: absolute;
+  right: 16px;
+  top: 16px;
+  width: 38px;
+  height: 38px;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: #fff;
+  color: var(--muted);
+  display: grid;
+  place-items: center;
+}
+
+.security-notice-icon {
+  width: 62px;
+  height: 62px;
+  margin: 0 auto 18px;
+  border-radius: 20px;
+  display: grid;
+  place-items: center;
+  background: var(--rose-100);
+  color: var(--wine-700);
+}
+
+.security-notice-card > span {
+  font-size: .68rem;
+  letter-spacing: .17em;
+  font-weight: 900;
+  color: var(--wine-700);
+}
+
+.security-notice-card h2 {
+  margin: 10px 0 12px;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 2.35rem;
+  line-height: 1;
+  color: var(--wine-950);
+}
+
+.security-notice-card p {
+  color: var(--muted);
+  line-height: 1.7;
+  font-size: .9rem;
+}
+
+.security-notice-button {
+  width: 100%;
+  margin-top: 10px;
+}
+
+/* EFEITOS E BOTOES */
+.button {
+  transition:
+    transform .25s ease,
+    box-shadow .25s ease,
+    background-color .25s ease,
+    border-color .25s ease;
+}
+
+.button:hover {
+  transform: translateY(-3px);
+}
+
+.button-primary:hover {
+  box-shadow: 0 16px 34px rgba(113,23,47,.28);
+}
+
+.media-card,
+.service-detail,
+.principles > div,
+.about-icons > div {
+  transition:
+    transform .32s ease,
+    box-shadow .32s ease,
+    border-color .32s ease;
+}
+
+.principles > div:hover,
+.about-icons > div:hover {
+  transform: translateY(-4px);
+  border-color: rgba(113,23,47,.22);
+  box-shadow: 0 16px 34px rgba(63,18,32,.07);
+}
+
+/* RESPONSIVO */
+@media (max-width: 980px) {
+  .hero-art .hero-floating-card {
+    position: static;
+    margin: 16px auto 0;
+    width: max-content;
+    max-width: 100%;
+  }
+
+  .about-hero-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .about-hero-portrait {
+    min-height: 520px;
+  }
+
+  .about-public-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .about-philosophy-card {
+    position: static;
+  }
+}
+
+@media (max-width: 700px) {
+  .about-hero-portrait {
+    min-height: 430px;
+    border-radius: 28px;
+  }
+
+  .about-photo-caption {
+    left: 18px;
+    right: 18px;
+    bottom: 18px;
+    padding: 18px;
+  }
+
+  .gallery-modal-backdrop {
+    padding: 10px;
+  }
+
+  .gallery-modal {
+    max-height: calc(100vh - 20px);
+    border-radius: 22px;
+  }
+
+  .gallery-modal-header {
+    padding: 22px 18px;
+  }
+
+  .gallery-modal-content {
+    padding: 18px;
+  }
+
+  .gallery-asset-copy {
+    padding: 18px;
+  }
+
+  .security-notice-card {
+    padding: 30px 22px 24px;
+  }
+}
+
+/* ==========================================================
+   BLOCO 03 - HOME + WHATSAPP
+   ========================================================== */
+
+/* HERO HOME: fundo mais claro para valorizar a logo */
+.hero {
+  background:
+    radial-gradient(circle at 82% 18%, rgba(255,255,255,.23), transparent 24%),
+    radial-gradient(circle at 90% 50%, rgba(255,255,255,.09), transparent 28%),
+    linear-gradient(120deg, #77142e 0%, #a13755 58%, #d8a8b6 110%);
+}
+
+/* Remove o aspecto de card branco quadrado e deixa a logo mais solta */
+.hero-logo-card {
+  width: min(420px, 100%);
+  aspect-ratio: auto;
+  min-height: 480px;
+  padding: 26px 24px 18px;
+  border-radius: 40px;
+  border: 1px solid rgba(255,255,255,.14);
+  background: linear-gradient(180deg, rgba(255,255,255,.14), rgba(255,255,255,.03));
+  backdrop-filter: blur(10px);
+  box-shadow: 0 30px 70px rgba(28, 0, 9, .14);
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.hero-logo-card img {
+  width: min(340px, 86%);
+  margin: 0 auto;
+  background: transparent !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+  filter: drop-shadow(0 16px 30px rgba(56, 8, 20, .10)) !important;
+}
+
+.hero-metric {
+  align-items: center;
+  text-align: center;
+  margin-top: 30px;
+}
+
+.hero-metric strong {
+  font-size: 1.95rem;
+  line-height: 1.08;
+}
+
+.hero-metric span {
+  font-size: .86rem;
+  color: #f8e6eb;
+  margin-top: 8px;
+}
+
+/* Reposiciona o card flutuante */
+.hero-art .hero-floating-card {
+  right: -10px;
+  top: 8px;
+  bottom: auto;
+  z-index: 4;
+}
+
+/* Botao WhatsApp mais clean, nas cores do site e com pulsacao leve */
+.whatsapp-float.whatsapp-float-clean {
+  right: 24px;
+  bottom: 24px;
+  z-index: 85;
+  background: rgba(251, 248, 245, .96);
+  color: var(--wine-800);
+  border: 1px solid rgba(113,23,47,.12);
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px 12px 12px;
+  box-shadow: 0 18px 42px rgba(63,18,32,.15);
+  backdrop-filter: blur(14px);
+}
+
+.whatsapp-float.whatsapp-float-clean:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 22px 48px rgba(63,18,32,.18);
+}
+
+.whatsapp-icon-shell {
+  position: relative;
+  width: 42px;
+  height: 42px;
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 auto;
+}
+
+.whatsapp-icon-pulse {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: rgba(113,23,47,.15);
+  animation: whatsappPulse 1.9s ease-out infinite;
+}
+
+.whatsapp-icon-circle {
+  position: relative;
+  z-index: 2;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--wine-700);
+  color: #fff;
+  box-shadow: 0 10px 22px rgba(113,23,47,.24);
+}
+
+.whatsapp-copy {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+}
+
+.whatsapp-copy strong {
+  font-size: .88rem;
+  font-weight: 900;
+  color: var(--wine-800);
+}
+
+.whatsapp-copy small {
+  margin-top: 4px;
+  font-size: .72rem;
+  color: var(--muted);
+}
+
+@keyframes whatsappPulse {
+  0% {
+    transform: scale(.92);
+    opacity: .72;
+  }
+  70% {
+    transform: scale(1.28);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1.28);
+    opacity: 0;
+  }
+}
+
+@media (max-width: 980px) {
+  .hero-logo-card {
+    min-height: 430px;
+  }
+
+  .hero-art .hero-floating-card {
+    right: 0;
+    top: 0;
+  }
+}
+
+@media (max-width: 700px) {
+  .hero-logo-card {
+    min-height: 360px;
+    padding: 18px 18px 14px;
+  }
+
+  .hero-logo-card img {
+    width: min(290px, 88%);
+  }
+
+  .hero-metric {
+    margin-top: 20px;
+  }
+
+  .hero-metric strong {
+    font-size: 1.58rem;
+  }
+
+  .hero-metric span {
+    font-size: .8rem;
+  }
+
+  .whatsapp-float.whatsapp-float-clean {
+    right: 16px;
+    bottom: 16px;
+    padding: 11px 14px 11px 11px;
+    gap: 10px;
+  }
+
+  .whatsapp-copy strong {
+    font-size: .82rem;
+  }
+
+  .whatsapp-copy small {
+    font-size: .68rem;
+  }
+}
+
+/* ==========================================================
+   BLOCO 03.1 - PROTECAO VISUAL DEVTOOLS / F12
+   ========================================================== */
+
+html.restricted-access-active,
+html.restricted-access-active body {
+  overflow: hidden !important;
+}
+
+html.restricted-access-active .site-shell {
+  user-select: none;
+}
+
+.security-block-screen {
+  position: fixed;
+  z-index: 999999;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background:
+    radial-gradient(circle at 50% 35%, rgba(150, 47, 75, .28), transparent 35%),
+    linear-gradient(135deg, rgba(52, 8, 20, .98), rgba(91, 16, 36, .99));
+  backdrop-filter: blur(18px);
+  animation: securityBlockIn .18s ease;
+}
+
+.security-block-card {
+  width: min(500px, 100%);
+  padding: 42px 38px 36px;
+  border-radius: 30px;
+  text-align: center;
+  background: rgba(251, 248, 245, .98);
+  border: 1px solid rgba(255,255,255,.35);
+  box-shadow: 0 34px 100px rgba(0,0,0,.38);
+}
+
+.security-block-icon {
+  width: 74px;
+  height: 74px;
+  margin: 0 auto 20px;
+  border-radius: 24px;
+  display: grid;
+  place-items: center;
+  background: var(--rose-100);
+  color: var(--wine-700);
+  box-shadow: inset 0 0 0 1px rgba(113,23,47,.08);
+}
+
+.security-block-eyebrow {
+  display: block;
+  color: var(--wine-700);
+  font-size: .7rem;
+  letter-spacing: .2em;
+  font-weight: 900;
+}
+
+.security-block-card h2 {
+  margin: 12px 0 14px;
+  font-family: 'Cormorant Garamond', serif;
+  color: var(--wine-950);
+  font-size: clamp(2.5rem, 5vw, 3.5rem);
+  line-height: .95;
+}
+
+.security-block-card p {
+  max-width: 410px;
+  margin: 0 auto;
+  color: var(--muted);
+  font-size: .95rem;
+  line-height: 1.75;
+}
+
+.security-block-status {
+  margin-top: 22px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: var(--rose-50);
+  border: 1px solid rgba(113,23,47,.1);
+  color: var(--wine-800);
+  font-size: .82rem;
+  line-height: 1.55;
+  font-weight: 700;
+}
+
+.security-block-button {
+  width: 100%;
+  margin-top: 18px;
+}
+
+@keyframes securityBlockIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@media (max-width: 600px) {
+  .security-block-card {
+    padding: 34px 22px 28px;
+    border-radius: 24px;
+  }
+}

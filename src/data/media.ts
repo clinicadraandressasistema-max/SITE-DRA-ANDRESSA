@@ -1,37 +1,61 @@
-export type MediaItem = {
+export type GalleryMediaItem = {
   id: string
-  type: 'image' | 'youtube' | 'drive'
+  type: 'image' | 'video' | 'youtube' | 'drive'
   title: string
   description?: string
   src: string
-  cover?: string
-  category: 'resultados' | 'procedimentos' | 'conteudo' | 'clinica'
+  poster?: string
 }
 
-// Troque ou acrescente itens aqui. Para arquivos locais, coloque as mídias em /public/media/images ou /public/media/videos.
-export const mediaItems: MediaItem[] = [
+export type GalleryAlbum = {
+  id: string
+  title: string
+  subtitle: string
+  description: string
+  cover: string
+  category: 'Resultados' | 'Clínica' | 'Conteúdo'
+  items: GalleryMediaItem[]
+}
+
+/**
+ * A galeria foi preparada em formato de álbuns.
+ *
+ * Quando as mídias reais forem adicionadas, basta inserir os itens em "items".
+ * O site já suporta:
+ * - imagem local
+ * - vídeo local
+ * - YouTube
+ * - Google Drive em modo de visualização
+ */
+export const galleryAlbums: GalleryAlbum[] = [
   {
-    id: 'placeholder-1',
-    type: 'image',
+    id: 'resultados',
     title: 'Resultados e acompanhamento',
-    description: 'Espaço preparado para fotos autorizadas de evolução e resultados.',
-    src: '/media/images/placeholder-result.svg',
-    category: 'resultados',
+    subtitle: 'Evolução, cuidado e acompanhamento',
+    description:
+      'Acompanhe registros de evolução e resultados compartilhados com autorização.',
+    cover: '/media/galeria/resultados/capa.jpg',
+    category: 'Resultados',
+    items: [],
   },
   {
-    id: 'placeholder-2',
-    type: 'image',
+    id: 'clinica',
     title: 'Bastidores da clínica',
-    description: 'Use este espaço para equipe, estrutura e momentos de atendimento.',
-    src: '/media/images/placeholder-clinic.svg',
-    category: 'clinica',
+    subtitle: 'Um olhar sobre a rotina e o atendimento',
+    description:
+      'Conheça um pouco da rotina, da estrutura e dos bastidores do atendimento.',
+    cover: '/media/galeria/clinica/capa.jpg',
+    category: 'Clínica',
+    items: [],
   },
   {
-    id: 'placeholder-3',
-    type: 'image',
-    title: 'Conteúdo em vídeo',
-    description: 'Você pode substituir por vídeo do YouTube, Drive público ou arquivo local.',
-    src: '/media/images/placeholder-video.svg',
-    category: 'conteudo',
+    id: 'videos',
+    title: 'Conteúdos da Dra. Andressa',
+    subtitle: 'Informação médica em vídeo',
+    description:
+      'Assista a conteúdos sobre saúde capilar, procedimentos, cuidados e acompanhamento.',
+    cover: '/media/galeria/videos/capa.jpg',
+    category: 'Conteúdo',
+    items: [],
   },
 ]

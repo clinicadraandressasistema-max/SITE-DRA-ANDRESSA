@@ -10,7 +10,6 @@ import {
   MessageCircle,
   RefreshCcw,
   Search,
-  ShieldCheck,
   UserCheck,
   UserPlus,
   UserRound,
@@ -1049,31 +1048,13 @@ export default function Booking() {
             </h1>
 
             <p>
-              Todas as opções exibidas
-              nesta página são carregadas
-              a partir das configurações
-              liberadas pela clínica.
+              Encontre o atendimento ideal,
+              escolha o melhor horário
+              e faça seu agendamento
+              de forma simples e segura.
             </p>
           </Reveal>
 
-          <Reveal
-            delay={90}
-            className="booking-security"
-          >
-            <ShieldCheck />
-
-            <div>
-              <strong>
-                Privacidade por padrão
-              </strong>
-
-              <span>
-                Esta página não exibe
-                prontuário, dados financeiros
-                ou histórico clínico.
-              </span>
-            </div>
-          </Reveal>
         </div>
       </div>
 
@@ -1117,11 +1098,9 @@ export default function Booking() {
             </h2>
 
             <p>
-              A consulta por protocolo
-              será vinculada à próxima
-              etapa da integração.
-              Enquanto isso, a clínica
-              pode ajudar pelo WhatsApp.
+              Consulte seus horários,
+              acompanhe seus agendamentos
+              e faça alterações com segurança.
             </p>
 
             <a

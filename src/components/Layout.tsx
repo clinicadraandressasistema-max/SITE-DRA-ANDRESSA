@@ -3,6 +3,7 @@ import { Instagram, Menu, X, ArrowUpRight, CalendarDays } from 'lucide-react'
 import { Link, NavLink, useLocation } from 'react-router-dom'
 import PageTransition from './PageTransition'
 import WhatsAppButton from './WhatsAppButton'
+import SecurityNotice from './SecurityNotice'
 import { siteData, whatsappUrl } from '../data/site'
 
 const nav = [
@@ -96,6 +97,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           <span>Conteúdo informativo. A indicação e os resultados dependem de avaliação médica individual.</span>
         </div>
       </footer>
+      <SecurityNotice />
       <WhatsAppButton />
     </div>
   )
