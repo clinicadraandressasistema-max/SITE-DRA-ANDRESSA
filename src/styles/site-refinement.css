@@ -1078,3 +1078,182 @@ html.restricted-access-active .site-shell {
     right: -5% !important;
   }
 }
+
+
+/* ==========================================================
+   BLOCO 04 - PROPORCAO SOBRE + LOGO 3D
+   ========================================================== */
+
+/* ----------------------------------------------------------
+   SOBRE A DRA. - DESKTOP
+   Foto levemente maior e ultrapassando o painel
+   ---------------------------------------------------------- */
+
+@media (min-width: 1101px) {
+
+  .about-hero-grid > :first-child {
+    position: relative;
+    z-index: 5;
+
+    /* aproxima o texto da fotografia */
+    margin-top: -72px !important;
+  }
+
+  .about-hero-portrait {
+    min-height: 620px !important;
+    overflow: visible !important;
+  }
+
+  .about-doctor-cutout {
+    width: auto !important;
+    height: 111% !important;
+    max-width: none !important;
+
+    right: 1% !important;
+    bottom: 0 !important;
+
+    object-fit: contain !important;
+    object-position: center bottom !important;
+
+    filter:
+      drop-shadow(0 28px 32px rgba(32, 0, 10, .20)) !important;
+  }
+}
+
+/* Monitores maiores */
+@media (min-width: 1500px) {
+
+  .about-hero-grid > :first-child {
+    margin-top: -82px !important;
+  }
+
+  .about-doctor-cutout {
+    height: 113% !important;
+    right: 2% !important;
+  }
+}
+
+
+/* ----------------------------------------------------------
+   NOTEBOOK / TABLET
+   ---------------------------------------------------------- */
+
+@media (min-width: 701px) and (max-width: 1100px) {
+
+  .about-hero-grid > :first-child {
+    margin-top: -38px !important;
+  }
+
+  .about-hero-portrait {
+    min-height: 570px !important;
+  }
+
+  .about-doctor-cutout {
+    width: auto !important;
+    height: 103% !important;
+
+    right: 0 !important;
+    bottom: 0 !important;
+  }
+}
+
+
+/* ----------------------------------------------------------
+   MOBILE
+   Foto volta para dentro do painel para não cortar o rosto
+   ---------------------------------------------------------- */
+
+@media (max-width: 700px) {
+
+  .about-hero-grid > :first-child {
+    margin-top: 0 !important;
+  }
+
+  .about-hero-portrait {
+    min-height: 500px !important;
+    margin-top: 24px !important;
+    overflow: hidden !important;
+  }
+
+  .about-doctor-cutout {
+    width: auto !important;
+    height: 91% !important;
+
+    right: -4% !important;
+    bottom: 0 !important;
+
+    object-fit: contain !important;
+    object-position: center bottom !important;
+  }
+}
+
+@media (max-width: 430px) {
+
+  .about-hero-portrait {
+    min-height: 450px !important;
+  }
+
+  .about-doctor-cutout {
+    height: 87% !important;
+    right: -6% !important;
+  }
+}
+
+
+/* ----------------------------------------------------------
+   HOME - LOGO COM PROFUNDIDADE 3D SUAVE
+   ---------------------------------------------------------- */
+
+.hero-logo-card img {
+  position: relative;
+
+  filter:
+    drop-shadow(0 2px 0 rgba(255,255,255,.18))
+    drop-shadow(0 6px 4px rgba(76, 14, 32, .10))
+    drop-shadow(0 16px 18px rgba(76, 14, 32, .15))
+    drop-shadow(0 28px 40px rgba(44, 5, 18, .10))
+    !important;
+
+  transform:
+    perspective(900px)
+    rotateX(1.5deg)
+    rotateY(-1.8deg)
+    translateZ(6px);
+
+  transform-origin: center;
+  transition:
+    transform .5s ease,
+    filter .5s ease;
+}
+
+/* movimento quase imperceptível ao passar o mouse */
+.hero-logo-card:hover img {
+  transform:
+    perspective(900px)
+    rotateX(0deg)
+    rotateY(0deg)
+    translateY(-3px)
+    translateZ(10px);
+
+  filter:
+    drop-shadow(0 2px 0 rgba(255,255,255,.20))
+    drop-shadow(0 8px 6px rgba(76, 14, 32, .11))
+    drop-shadow(0 20px 24px rgba(76, 14, 32, .17))
+    drop-shadow(0 34px 48px rgba(44, 5, 18, .11))
+    !important;
+}
+
+/* No celular mantém só a profundidade, sem inclinação */
+@media (max-width: 700px) {
+  .hero-logo-card img,
+  .hero-logo-card:hover img {
+    transform:
+      perspective(900px)
+      translateZ(4px);
+
+    filter:
+      drop-shadow(0 5px 5px rgba(76, 14, 32, .10))
+      drop-shadow(0 16px 22px rgba(76, 14, 32, .15))
+      !important;
+  }
+}
