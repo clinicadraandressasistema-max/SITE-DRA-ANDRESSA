@@ -53,13 +53,13 @@
 .feature-international {
   background-image:
     linear-gradient(rgba(255,255,255,.88), rgba(255,255,255,.94)),
-    url('/media/images/destaques/experiencia-internacional.jpg') !important;
+    url('/media/images/destaques/experiencia-internacional.png') !important;
 }
 
 .feature-natural {
   background-image:
     linear-gradient(rgba(255,255,255,.88), rgba(255,255,255,.94)),
-    url('/media/images/destaques/naturalidade.jpg') !important;
+    url('/media/images/destaques/naturalidade.png') !important;
 }
 
 /* SOBRE A DRA.: fotografia mesclada ao banner */
