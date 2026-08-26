@@ -1360,3 +1360,56 @@ html.restricted-access-active .site-shell {
     0 1px 5px rgba(255,255,255,.95);
 }
 
+
+
+/* ==========================================================
+   BLOCO 07 - CAPAS GALERIA NITIDAS
+   ========================================================== */
+
+.album-cover {
+  background-size: cover !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+  background-color: #ead2d8 !important;
+}
+
+/* Não cobre mais a fotografia inteira */
+.album-cover::before,
+.album-cover::after {
+  display: none !important;
+}
+
+/* Somente o texto recebe fundo discreto */
+.album-cover-content {
+  position: relative;
+  z-index: 2;
+
+  width: 100%;
+
+  padding: 42px 22px 20px !important;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(55, 8, 20, 0) 0%,
+      rgba(55, 8, 20, .16) 32%,
+      rgba(55, 8, 20, .68) 100%
+    ) !important;
+
+  color: #fff !important;
+
+  text-shadow:
+    0 2px 10px rgba(20,0,6,.35);
+}
+
+/* Pequeno efeito premium ao passar o mouse */
+.media-card .album-cover {
+  transition:
+    transform .45s ease,
+    filter .45s ease;
+}
+
+.media-card:hover .album-cover {
+  filter: saturate(1.05) contrast(1.03);
+}
+

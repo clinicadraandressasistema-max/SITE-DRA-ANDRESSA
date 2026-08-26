@@ -13,7 +13,7 @@ export default function MediaCard({ item, onOpen }: Props) {
       <div
         className="media-visual album-cover"
         style={{
-          backgroundImage: `linear-gradient(180deg, rgba(64,8,23,.05), rgba(64,8,23,.62)), url('${item.cover}')`,
+          backgroundImage: `url('${item.cover}')`,
         }}
       >
         <div className="album-cover-content">
