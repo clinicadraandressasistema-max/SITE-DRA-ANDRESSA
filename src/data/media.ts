@@ -34,7 +34,7 @@ export const galleryAlbums: GalleryAlbum[] = [
     subtitle: 'Evolução, cuidado e acompanhamento',
     description:
       'Acompanhe registros de evolução e resultados compartilhados com autorização.',
-    cover: '/media/galeria/resultados/capa.jpg',
+    cover: '/media/galeria/resultados/capa-resultados.png',
     category: 'Resultados',
     items: [],
   },
@@ -44,7 +44,7 @@ export const galleryAlbums: GalleryAlbum[] = [
     subtitle: 'Um olhar sobre a rotina e o atendimento',
     description:
       'Conheça um pouco da rotina, da estrutura e dos bastidores do atendimento.',
-    cover: '/media/galeria/clinica/capa.jpg',
+    cover: '/media/galeria/clinica/capa-clinica.png',
     category: 'Clínica',
     items: [],
   },
@@ -54,7 +54,7 @@ export const galleryAlbums: GalleryAlbum[] = [
     subtitle: 'Informação médica em vídeo',
     description:
       'Assista a conteúdos sobre saúde capilar, procedimentos, cuidados e acompanhamento.',
-    cover: '/media/galeria/videos/capa.jpg',
+    cover: '/media/galeria/videos/capa-conteudos.png',
     category: 'Conteúdo',
     items: [],
   },
