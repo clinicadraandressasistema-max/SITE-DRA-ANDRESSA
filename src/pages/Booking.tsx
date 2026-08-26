@@ -1055,6 +1055,20 @@ export default function Booking() {
             </p>
           </Reveal>
 
+          <Reveal
+            delay={120}
+            className="booking-doctor-visual"
+          >
+            <div className="booking-doctor-panel">
+              <img
+                src="/media/images/autoagendamento/dra-andressa-autoagendamento-principal.png"
+                alt="Dra. Andressa Dallarmi"
+                className="booking-doctor-image"
+              />
+            </div>
+          </Reveal>
+
+
         </div>
       </div>
 
