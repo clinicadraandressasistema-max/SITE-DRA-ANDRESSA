@@ -1302,3 +1302,61 @@ html.restricted-access-active .site-shell {
   text-shadow: 0 1px 10px rgba(255,255,255,.80);
 }
 
+
+
+/* ==========================================================
+   BLOCO 06 - DESTAQUES COM IMAGEM MAIS EVIDENTE
+   ========================================================== */
+
+.feature-international {
+  background-image:
+    linear-gradient(
+      rgba(255,255,255,.10),
+      rgba(255,255,255,.20)
+    ),
+    url('/media/images/destaques/experiencia-internacional.png')
+    !important;
+
+  background-size: cover !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+}
+
+.feature-natural {
+  background-image:
+    linear-gradient(
+      rgba(255,255,255,.10),
+      rgba(255,255,255,.20)
+    ),
+    url('/media/images/destaques/naturalidade.png')
+    !important;
+
+  background-size: cover !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+}
+
+/* Suave proteção atrás dos textos */
+.feature-international strong,
+.feature-natural strong,
+.feature-international span,
+.feature-natural span,
+.feature-international svg,
+.feature-natural svg {
+  position: relative;
+  z-index: 2;
+}
+
+.feature-international strong,
+.feature-natural strong {
+  text-shadow:
+    0 1px 3px rgba(255,255,255,.95),
+    0 2px 14px rgba(255,255,255,.70);
+}
+
+.feature-international span,
+.feature-natural span {
+  text-shadow:
+    0 1px 5px rgba(255,255,255,.95);
+}
+
