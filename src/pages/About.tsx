@@ -37,6 +37,12 @@ export default function About() {
           </Reveal>
 
           <Reveal delay={100} className="about-hero-portrait">
+            <img
+              className="about-doctor-cutout"
+              src="/media/images/dra-andressa/dra-andressa-sobre-principal.png"
+              alt="Dra. Andressa Dallarmi"
+            />
+
             <div className="about-photo-caption">
               <span>Dra. Andressa Dallarmi</span>
               <p>{siteData.professional.title}</p>
