@@ -18,13 +18,27 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = useState(false)
   const location = useLocation()
 
+
+  const pageTheme =
+
+    location.pathname === '/' ? 'theme-home' :
+
+    location.pathname.startsWith('/sobre') ? 'theme-about' :
+
+    location.pathname.startsWith('/servicos') ? 'theme-services' :
+
+    location.pathname.startsWith('/galeria') ? 'theme-gallery' :
+
+    location.pathname.startsWith('/agendamento') ? 'theme-booking' :
+
+    'theme-default'
   useEffect(() => {
     setOpen(false)
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }, [location.pathname])
 
   return (
-    <div className="site-shell">
+    <div className={`site-shell ${pageTheme}`}>
       <header className="site-header">
         <Link to="/" className="brand-lockup" aria-label="Dra. Andressa Dallarmi - início">
           <img src="/brand/logo.png" alt="Logo Dra. Andressa Dallarmi" />

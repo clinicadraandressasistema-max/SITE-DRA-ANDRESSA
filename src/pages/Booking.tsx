@@ -25,7 +25,6 @@ import {
   type BookingPatient,
   type BookingSelection,
 } from '../services/bookingApi'
-import '../styles/booking-upgrade.css'
 
 type AnyRecord = Record<string, unknown>
 
