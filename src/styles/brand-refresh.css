@@ -24,12 +24,12 @@ body,.site-shell{background:#fff;color:var(--brand-ink)}
 /* INICIO */
 .theme-home .hero{
   background:radial-gradient(circle at 82% 18%,rgba(202,146,102,.27),transparent 26%),
-  linear-gradient(125deg,#71122A 0%,#5b0f22 58%,#1D1D1B 112%);
+  linear-gradient(120deg,#71122A 0%,#9a3652 58%,#FCE7DB 118%);
 }
 .theme-home .hero-copy h1 em{color:var(--brand-copper)}
 .theme-home .hero-copy p{color:rgba(252,231,219,.90)}
 .theme-home .hero-logo-card{border-color:rgba(252,231,219,.22);background:linear-gradient(145deg,rgba(255,255,255,.13),rgba(202,146,102,.07))}
-.theme-home .hero-logo-card img{background:rgba(255,255,255,.95)}
+.theme-home .hero-logo-card img{background:transparent!important}
 .theme-home .hero-marquee{color:var(--brand-blush);border-color:rgba(202,146,102,.32)}
 .theme-home .section-ivory{background:#fff}
 .theme-home .services-showcase{background:radial-gradient(circle at 90% 8%,rgba(202,146,102,.10),transparent 26%),linear-gradient(180deg,#fff 0%,rgba(252,231,219,.62) 100%)}
@@ -94,7 +94,7 @@ body,.site-shell{background:#fff;color:var(--brand-ink)}
 }
 @media(max-width:760px){
   .site-header{background:rgba(255,255,255,.97)}
-  .theme-home .hero{background:linear-gradient(155deg,#71122A 0%,#4e0c1c 72%,#1D1D1B 100%)}
+  .theme-home .hero{background:linear-gradient(155deg,#71122A 0%,#8f314b 68%,#d9aab8 112%)}
   .theme-about .about-hero h1,.theme-services .services-hero h1,.theme-booking .booking-top h1{color:var(--brand-wine)}
   .theme-services .service-detail:nth-child(even){background:rgba(252,231,219,.24)}
 }
