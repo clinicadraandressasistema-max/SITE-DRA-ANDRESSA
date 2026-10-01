@@ -4,6 +4,8 @@ import { Link, NavLink, useLocation } from 'react-router-dom'
 import PageTransition from './PageTransition'
 import WhatsAppButton from './WhatsAppButton'
 import SecurityNotice from './SecurityNotice'
+import SitePresence from './SitePresence'
+import ClinicLocation from './ClinicLocation'
 import { siteData, whatsappUrl } from '../data/site'
 
 const nav = [
@@ -82,10 +84,15 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
       <PageTransition>{children}</PageTransition>
 
+      <ClinicLocation />
+
       <footer className="site-footer">
         <div className="footer-grid">
           <div className="footer-brand">
-            <img src="/brand/logo.png" alt="" />
+            <div className="footer-brand-wordmark-30b" aria-label="Dra. Andressa Dallarmi">
+              <strong>Dra. Andressa Dallarmi</strong>
+              <span>Cirurgia Geral &amp; EstÃ©tica</span>
+            </div>
             <p>Atendimento médico com planejamento individualizado, segurança e acompanhamento próximo.</p>
           </div>
           <div>
@@ -110,7 +117,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           <span>© {new Date().getFullYear()} Dra. Andressa Dallarmi.</span>
           <span>Conteúdo informativo. A indicação e os resultados dependem de avaliação médica individual.</span>
         </div>
-      </footer>
+      </footer>      <SitePresence />
+
       <SecurityNotice />
       <WhatsAppButton />
     </div>

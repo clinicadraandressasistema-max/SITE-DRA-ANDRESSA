@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+﻿import { useEffect, useMemo, useState } from 'react'
 import {
   AlertTriangle,
   CalendarDays,
@@ -21,10 +21,17 @@ import {
   createBooking,
   fetchBookingCatalog,
   fetchBookingSlots,
+  fetchBookingMonthSummary,
   identifyPatient,
+  manageBooking,
   type BookingPatient,
   type BookingSelection,
 } from '../services/bookingApi'
+import '../styles/booking-experience-v2.css'
+import { whatsappUrl } from '../data/site'
+import { buildGoogleCalendarUrl, downloadCalendarFile } from '../utils/calendar'
+
+// BLOCO_30B_AUTOAGENDAMENTO_SEGURO
 
 type AnyRecord = Record<string, unknown>
 
@@ -262,24 +269,176 @@ function today() {
   }
 }
 
-function whatsappHelp() {
-  const raw =
-    import.meta.env
-      .VITE_WHATSAPP_NUMBER ||
-    ''
 
-  const phone =
-    String(raw)
-      .replace(/\D/g, '')
+function shiftBookingMonth(
+  value: string,
+  delta: number,
+) {
+  const [year, month] =
+    value.split('-').map(Number)
 
-  const message =
-    encodeURIComponent(
-      'Olá! Preciso de ajuda para acessar meu cadastro e realizar meu agendamento pelo site.',
+  const date =
+    new Date(year, month - 1 + delta, 1)
+
+  return [
+    date.getFullYear(),
+    String(date.getMonth() + 1).padStart(2, '0'),
+  ].join('-')
+}
+
+function bookingMonthBounds(value: string) {
+  const [year, month] =
+    value.split('-').map(Number)
+
+  const lastDay =
+    new Date(year, month, 0).getDate()
+
+  return {
+    from:
+      value + '-01',
+    to:
+      value +
+      '-' +
+      String(lastDay).padStart(2, '0'),
+  }
+}
+
+function buildBookingCalendarMonth(value: string) {
+  const [year, month] =
+    value.split('-').map(Number)
+
+  const first =
+    new Date(year, month - 1, 1)
+
+  const count =
+    new Date(year, month, 0).getDate()
+
+  const cells: Array<string | null> =
+    Array.from(
+      { length: first.getDay() },
+      () => null,
     )
 
-  return phone
-    ? `https://wa.me/${phone}?text=${message}`
-    : '#'
+  for (let day = 1; day <= count; day += 1) {
+    cells.push(
+      value +
+        '-' +
+        String(day).padStart(2, '0'),
+    )
+  }
+
+  return cells
+}
+
+function bookingMonthLabel(value: string) {
+  const [year, month] =
+    value.split('-').map(Number)
+
+  const label =
+    new Intl.DateTimeFormat(
+      'pt-BR',
+      {
+        month: 'long',
+        year: 'numeric',
+        timeZone: 'America/Sao_Paulo',
+      },
+    ).format(
+      new Date(year, month - 1, 1),
+    )
+
+  return (
+    label.charAt(0).toUpperCase() +
+    label.slice(1)
+  )
+}
+
+function addBookingDays(
+  value: string,
+  days: number,
+) {
+  const [year, month, day] =
+    value.split('-').map(Number)
+
+  const date =
+    new Date(year, month - 1, day)
+
+  date.setDate(
+    date.getDate() + days,
+  )
+
+  return [
+    date.getFullYear(),
+    String(date.getMonth() + 1).padStart(2, '0'),
+    String(date.getDate()).padStart(2, '0'),
+  ].join('-')
+}
+
+function whatsappHelp() {
+  return `https://wa.me/5541995969494?text=${encodeURIComponent(
+    'Olá! Estou no site da Dra. Andressa e preciso de ajuda para localizar ou conferir meu agendamento.',
+  )}`
+}
+
+function bookingResultList(raw: unknown) {
+  if (Array.isArray(raw)) return records(raw)
+
+  const root = asRecord(raw)
+  if (!root) return []
+
+  const list = records(
+    root.bookings ??
+    root.appointments ??
+    root.results ??
+    root.items ??
+    root.data,
+  )
+
+  if (list.length) return list
+
+  const single = asRecord(
+    root.booking ??
+    root.appointment ??
+    root.receipt ??
+    root.data,
+  )
+
+  return single ? [single] : []
+}
+
+function bookingResultStart(item: AnyRecord) {
+  return text(item, ['start_at', 'startAt', 'slot_start', 'date'])
+}
+
+function bookingResultService(item: AnyRecord) {
+  return text(
+    item,
+    ['service', 'service_name', 'serviceName', 'procedure'],
+    'Atendimento',
+  )
+}
+
+function bookingResultLocation(item: AnyRecord) {
+  return text(
+    item,
+    ['location', 'location_name', 'locationName', 'unit'],
+    'Clínica Dra. Andressa',
+  )
+}
+
+function bookingResultProvider(item: AnyRecord) {
+  return text(
+    item,
+    ['provider', 'provider_name', 'professional', 'professional_name'],
+    'Dra. Andressa Dallarmi',
+  )
+}
+
+function bookingResultProtocol(item: AnyRecord) {
+  return text(
+    item,
+    ['reference', 'protocol', 'booking_protocol', 'protocol_code', 'code'],
+    'Agendamento',
+  )
 }
 
 export default function Booking() {
@@ -336,14 +495,20 @@ export default function Booking() {
     useState(false)
 
   const [
-    existingCpf,
-    setExistingCpf,
+    existingPhone,
+    setExistingPhone,
   ] =
     useState('')
 
   const [
-    existingPhone,
-    setExistingPhone,
+    existingBirthDate,
+    setExistingBirthDate,
+  ] =
+    useState('')
+
+  const [
+    existingEmail,
+    setExistingEmail,
   ] =
     useState('')
 
@@ -361,7 +526,6 @@ export default function Booking() {
       fullName: '',
       phone: '',
       birthDate: '',
-      cpf: '',
       email: '',
     })
 
@@ -388,6 +552,32 @@ export default function Booking() {
     setSlots,
   ] =
     useState<AnyRecord[]>([])
+
+  const [
+    monthSummary,
+    setMonthSummary,
+  ] =
+    useState<AnyRecord[]>([])
+
+  const [
+    monthLoading,
+    setMonthLoading,
+  ] =
+    useState(false)
+
+  const [
+    calendarMonth,
+    setCalendarMonth,
+  ] =
+    useState(
+      () => today().slice(0, 7),
+    )
+
+  const [
+    maxAdvanceDays,
+    setMaxAdvanceDays,
+  ] =
+    useState(180)
 
   const [
     serviceId,
@@ -426,7 +616,16 @@ export default function Booking() {
     useState<{
       protocol?: string
       message?: string
+      managementToken?: string
+      startAt?: string
+      patientName?: string
     } | null>(null)
+
+  const [bookingLookupPhone, setBookingLookupPhone] = useState('')
+  const [bookingLookupProtocol, setBookingLookupProtocol] = useState('')
+  const [bookingLookupLoading, setBookingLookupLoading] = useState(false)
+  const [bookingLookupMessage, setBookingLookupMessage] = useState('')
+  const [bookingLookupResults, setBookingLookupResults] = useState<AnyRecord[]>([])
 
   const selectedService =
     useMemo(
@@ -472,6 +671,66 @@ export default function Booking() {
       selectedSlotStart,
     )
 
+  const monthSummaryMap =
+    useMemo(
+      () => {
+        const map =
+          new Map<string, AnyRecord>()
+
+        monthSummary.forEach(
+          (item) => {
+            const key =
+              text(
+                item,
+                ['calendar_date', 'date'],
+              ).slice(0, 10)
+
+            if (key) {
+              map.set(key, item)
+            }
+          },
+        )
+
+        return map
+      },
+      [monthSummary],
+    )
+
+  const bookingCalendarDays =
+    useMemo(
+      () =>
+        buildBookingCalendarMonth(
+          calendarMonth,
+        ),
+      [calendarMonth],
+    )
+
+  const lastAllowedBookingDate =
+    useMemo(
+      () =>
+        addBookingDays(
+          today(),
+          maxAdvanceDays,
+        ),
+      [maxAdvanceDays],
+    )
+
+  const previousBookingMonthDisabled =
+    calendarMonth <=
+    today().slice(0, 7)
+
+  const nextBookingMonth =
+    shiftBookingMonth(
+      calendarMonth,
+      1,
+    )
+
+  const nextBookingMonthDisabled =
+    bookingMonthBounds(
+      nextBookingMonth,
+    ).from >
+    lastAllowedBookingDate
+
   useEffect(() => {
     if (!success) return
 
@@ -503,6 +762,25 @@ export default function Booking() {
     locationId,
     providerId,
     date,
+  ])
+
+  useEffect(() => {
+    if (
+      step !== 4 ||
+      !serviceId ||
+      !locationId ||
+      !providerId
+    ) {
+      return
+    }
+
+    void loadMonthSummary()
+  }, [
+    step,
+    serviceId,
+    locationId,
+    providerId,
+    calendarMonth,
   ])
 
   async function loadCatalog() {
@@ -571,16 +849,17 @@ export default function Booking() {
     }
   }
 
-  async function findExisting() {
+    async function findExisting() {
     setError('')
     setIdentityMessage('')
 
-    if (
-      !existingCpf.trim() ||
-      !existingPhone.trim()
-    ) {
+    const phone = existingPhone.replace(/\D/g, '')
+    const birthDate = existingBirthDate.trim()
+    const email = existingEmail.trim().toLowerCase()
+
+    if (phone.length < 10 || !birthDate || !email || !email.includes('@')) {
       setError(
-        'Informe CPF e telefone para localizar seu cadastro com segurança.',
+        'Informe telefone/WhatsApp, data de nascimento e e-mail para confirmar seu cadastro.',
       )
       return
     }
@@ -588,21 +867,20 @@ export default function Booking() {
     setLoading(true)
 
     try {
-      const result =
-        await identifyPatient(
-          existingCpf,
-          existingPhone,
-        )
+      const result = await identifyPatient(
+        existingPhone,
+        birthDate,
+        email,
+      )
 
-      if (result.found) {
+      if (result.found && result.fullName) {
         setVerifiedExisting(true)
 
         setPatient({
-          fullName: '',
-          cpf: existingCpf,
+          fullName: result.fullName,
           phone: existingPhone,
-          birthDate: '',
-          email: '',
+          birthDate,
+          email,
         })
 
         setIdentityMessage(
@@ -615,15 +893,13 @@ export default function Booking() {
         setVerifiedExisting(false)
 
         setError(
-          result.message ||
-          'Não foi possível localizar o cadastro informado.',
+          'Não foi possível confirmar seu cadastro. Confira as informações digitadas ou fale com a clínica.',
         )
       }
-    } catch (e) {
+    } catch {
+      setVerifiedExisting(false)
       setError(
-        e instanceof Error
-          ? e.message
-          : 'Não foi possível localizar seu cadastro.',
+        'Não foi possível confirmar seu cadastro. Confira as informações digitadas ou fale com a clínica.',
       )
     } finally {
       setLoading(false)
@@ -637,16 +913,22 @@ export default function Booking() {
     setStep(2)
   }
 
-  async function continueNewPatient() {
+    async function continueNewPatient() {
     setError('')
     setDuplicateWarning(false)
 
+    const phone = patient.phone.replace(/\D/g, '')
+    const email = (patient.email ?? '').trim().toLowerCase()
+
     if (
       !patient.fullName.trim() ||
-      !patient.phone.trim()
+      phone.length < 10 ||
+      !patient.birthDate ||
+      !email ||
+      !email.includes('@')
     ) {
       setError(
-        'Informe nome completo e telefone para continuar.',
+        'Informe nome completo, telefone/WhatsApp, data de nascimento e e-mail para continuar.',
       )
       return
     }
@@ -654,33 +936,87 @@ export default function Booking() {
     setLoading(true)
 
     try {
-      const check =
-        await checkExistingPatient(
-          patient.cpf,
-          patient.phone,
-        )
+      const check = await checkExistingPatient(
+        patient.phone,
+        patient.birthDate,
+        email,
+      )
 
       if (check.exists) {
         setDuplicateWarning(true)
 
         setError(
-          check.message ||
-          'Você já possui cadastro na clínica.',
+          'Já pode existir um cadastro associado às informações fornecidas. Para sua segurança, confirme seu cadastro ou fale com a clínica.',
         )
-
         return
       }
 
+      setPatient({
+        ...patient,
+        email,
+      })
+
       await loadCatalog()
       setStep(2)
-    } catch (e) {
+    } catch {
       setError(
-        e instanceof Error
-          ? e.message
-          : 'Não foi possível verificar seu cadastro.',
+        'Não foi possível validar seus dados agora. Confira as informações ou fale com a clínica.',
       )
     } finally {
       setLoading(false)
+    }
+  }
+
+  async function loadMonthSummary() {
+    setMonthLoading(true)
+    setError('')
+
+    try {
+      const range =
+        bookingMonthBounds(
+          calendarMonth,
+        )
+
+      const response =
+        await fetchBookingMonthSummary({
+          serviceId,
+          locationId,
+          providerId,
+          from: range.from,
+          to: range.to,
+        })
+
+      const object =
+        asRecord(response)
+
+      setMonthSummary(
+        records(
+          object?.days,
+        ),
+      )
+
+      const maxDays =
+        Number(
+          object?.max_advance_days ||
+          180,
+        )
+
+      if (
+        Number.isFinite(maxDays) &&
+        maxDays > 0
+      ) {
+        setMaxAdvanceDays(maxDays)
+      }
+    } catch (e) {
+      setMonthSummary([])
+
+      setError(
+        e instanceof Error
+          ? e.message
+          : 'Nao foi possivel carregar o calendario de vagas.',
+      )
+    } finally {
+      setMonthLoading(false)
     }
   }
 
@@ -869,10 +1205,21 @@ export default function Booking() {
           ],
         )
 
+      const managementToken =
+        text(root, ['managementToken', 'management_token', 'token']) ||
+        text(receipt, ['managementToken', 'management_token', 'token'])
+
+      const confirmationMessage =
+        text(receipt, ['confirmation_message', 'message']) ||
+        text(root, ['message']) ||
+        'Seu agendamento foi registrado com sucesso.'
+
       setSuccess({
         protocol,
-        message:
-          'Seu agendamento foi registrado com sucesso.',
+        managementToken,
+        startAt: selectedSlotStart,
+        patientName: patient.fullName,
+        message: confirmationMessage,
       })
     } catch (e) {
       setError(
@@ -885,11 +1232,53 @@ export default function Booking() {
     }
   }
 
-  function resetAll() {
+    async function lookupMyBookings() {
+    setError('')
+    setBookingLookupMessage('')
+    setBookingLookupResults([])
+
+    const phone = bookingLookupPhone.replace(/\D/g, '')
+    const protocol = bookingLookupProtocol.trim().toUpperCase()
+
+    if (phone.length < 10 || !protocol) {
+      setBookingLookupMessage(
+        'Informe o protocolo do agendamento e o telefone/WhatsApp utilizado no cadastro.',
+      )
+      return
+    }
+
+    setBookingLookupLoading(true)
+
+    try {
+      const response = await manageBooking({
+        phone,
+        protocol,
+        reference: protocol,
+      })
+
+      const list = bookingResultList(response)
+      setBookingLookupResults(list)
+
+      setBookingLookupMessage(
+        list.length
+          ? 'Agendamento localizado com segurança.'
+          : 'Não foi possível localizar o agendamento. Confira os dados ou fale com a clínica.',
+      )
+    } catch {
+      setBookingLookupMessage(
+        'Não foi possível localizar o agendamento. Confira os dados ou fale com a clínica.',
+      )
+    } finally {
+      setBookingLookupLoading(false)
+    }
+  }
+
+    function resetAll() {
     setIdentityMode('choose')
     setVerifiedExisting(false)
-    setExistingCpf('')
     setExistingPhone('')
+    setExistingBirthDate('')
+    setExistingEmail('')
     setIdentityMessage('')
     setDuplicateWarning(false)
 
@@ -897,7 +1286,6 @@ export default function Booking() {
       fullName: '',
       phone: '',
       birthDate: '',
-      cpf: '',
       email: '',
     })
 
@@ -920,6 +1308,45 @@ export default function Booking() {
   }
 
   if (success) {
+    const calendarEvent = {
+      title: `Consulta - ${serviceTitle(selectedService)}`,
+      startAt: success.startAt || selectedSlotStart,
+      durationMinutes:
+        Number(
+          text(
+            selectedService,
+            ['duration_minutes', 'duration'],
+            '60',
+          ),
+        ) || 60,
+      location: locationTitle(selectedLocation),
+      description: [
+        'Agendamento na Clínica Dra. Andressa Dallarmi.',
+        `Profissional: ${providerTitle(selectedProvider)}`,
+        success.protocol ? `Protocolo: ${success.protocol}` : '',
+        'Em caso de dúvida, entre em contato com a clínica.',
+      ].filter(Boolean).join('\n'),
+      url: window.location.origin + '/agendamento',
+    }
+
+    const patientLabel =
+      success.patientName ||
+      patient.fullName ||
+      'Paciente'
+
+    const bookingWhatsapp = whatsappUrl(
+      [
+        'Olá! Acabei de realizar um autoagendamento pelo site da Dra. Andressa.',
+        `Paciente: ${patientLabel}`,
+        `Serviço: ${serviceTitle(selectedService)}`,
+        `Data: ${formatDate(date)}`,
+        `Horário: ${selectedTime}`,
+        success.protocol ? `Protocolo: ${success.protocol}` : '',
+        '',
+        'Gostaria de confirmar as orientações para garantir/reservar este horário, incluindo a regra de pagamento ou sinal quando aplicável.',
+      ].filter(Boolean).join('\n'),
+    )
+
     return (
       <section className="booking-page confirmation-page">
         <div className="container confirmation-wrap">
@@ -933,99 +1360,117 @@ export default function Booking() {
             </span>
 
             <h1>
-              Tudo certo.
-              Seu horário foi reservado.
+              Tudo certo. Seu horário foi registrado.
             </h1>
 
-            <p>
-              {success.message}
-            </p>
+            <p>{success.message}</p>
 
             {success.protocol && (
               <div className="protocol-box">
-                <span>
-                  Seu protocolo
-                </span>
-
-                <strong>
-                  {success.protocol}
-                </strong>
-
+                <span>Seu protocolo</span>
+                <strong>{success.protocol}</strong>
                 <small>
-                  Guarde este número para
-                  consultar seu agendamento.
+                  Guarde este número. Ele ajuda a localizar seu agendamento depois.
                 </small>
               </div>
             )}
 
             <div className="confirmation-summary">
               <div>
-                <span>
-                  Serviço
-                </span>
-                <strong>
-                  {serviceTitle(
-                    selectedService,
-                  )}
-                </strong>
+                <span>Serviço</span>
+                <strong>{serviceTitle(selectedService)}</strong>
               </div>
-
               <div>
-                <span>
-                  Profissional
-                </span>
-                <strong>
-                  {providerTitle(
-                    selectedProvider,
-                  )}
-                </strong>
+                <span>Profissional</span>
+                <strong>{providerTitle(selectedProvider)}</strong>
               </div>
-
               <div>
-                <span>
-                  Unidade
-                </span>
-                <strong>
-                  {locationTitle(
-                    selectedLocation,
-                  )}
-                </strong>
+                <span>Unidade</span>
+                <strong>{locationTitle(selectedLocation)}</strong>
               </div>
-
               <div>
-                <span>
-                  Data
-                </span>
-                <strong>
-                  {formatDate(date)}
-                </strong>
+                <span>Data</span>
+                <strong>{formatDate(date)}</strong>
               </div>
-
               <div>
-                <span>
-                  Horário
-                </span>
-                <strong>
-                  {selectedTime}
-                </strong>
+                <span>Horário</span>
+                <strong>{selectedTime}</strong>
               </div>
             </div>
 
-            <p className="privacy-note">
-              Você pode tirar um print
-              desta tela como comprovante.
-              Os dados preenchidos serão
-              removidos desta página
-              automaticamente.
-            </p>
+            <div className="booking-payment-notice">
+              <strong>Próximo passo: confirmação da reserva</strong>
+              <p>
+                Para garantir a data e o horário, a equipe da clínica confirmará com você
+                a regra deste atendimento. Conforme o serviço, poderá ser solicitado o
+                pagamento da consulta ou de uma parte do valor como sinal. A orientação
+                será feita de forma individual e a clínica entrará em contato.
+              </p>
+              <small>
+                Se preferir agilizar, você também pode iniciar a conversa pelo WhatsApp.
+              </small>
+            </div>
 
-            <button
-              className="button button-primary"
-              onClick={resetAll}
-            >
-              <RefreshCcw size={17} />
-              Fazer novo agendamento
-            </button>
+            <div className="booking-calendar-actions">
+              <a
+                className="button button-primary"
+                href={bookingWhatsapp}
+                target="_blank"
+                rel="noreferrer"
+              >
+                <MessageCircle size={17} />
+                Falar com a clínica
+              </a>
+
+              <a
+                className="button button-outline"
+                href={buildGoogleCalendarUrl(calendarEvent)}
+                target="_blank"
+                rel="noreferrer"
+              >
+                <CalendarDays size={17} />
+                Google Agenda
+              </a>
+
+              <button
+                type="button"
+                className="button button-outline"
+                onClick={() => downloadCalendarFile(calendarEvent)}
+              >
+                <CalendarDays size={17} />
+                iPhone / Outlook
+              </button>
+            </div>
+
+            <div className="booking-calendar-note">
+              O arquivo de calendário inclui lembretes de 24 horas e 2 horas antes.
+            </div>
+
+            <div className="booking-confirmation-actions">
+              <button
+                type="button"
+                className="button button-outline"
+                onClick={() => {
+                  setSuccess(null)
+                  setMode('manage')
+                  setBookingLookupPhone(patient.phone || '')
+                  setBookingLookupProtocol(success.protocol || '')
+                  window.scrollTo({ top: 0, behavior: 'smooth' })
+                }}
+              >
+                <Search size={17} />
+                Consultar este agendamento
+              </button>
+
+              <button
+                type="button"
+                className="button button-primary"
+                onClick={resetAll}
+              >
+                <RefreshCcw size={17} />
+                Fazer novo agendamento
+              </button>
+            </div>
           </div>
         </div>
       </section>
@@ -1103,28 +1548,246 @@ export default function Booking() {
         {mode === 'manage' ? (
           <div className="manage-booking-card">
             <span className="eyebrow">
-              Consultar / remarcar / cancelar
+              Consultar meu agendamento
             </span>
 
             <h2>
-              Já possui um agendamento?
+              Esqueceu a data ou o horário?
             </h2>
 
             <p>
-              Consulte seus horários,
-              acompanhe seus agendamentos
-              e faça alterações com segurança.
+              Informe os dados usados no agendamento. Você poderá conferir
+              data, horário, serviço e unidade e salvar a consulta diretamente
+              no calendário do celular.
             </p>
 
-            <a
-              href={whatsappHelp()}
-              target="_blank"
-              rel="noreferrer"
-              className="button button-primary"
-            >
-              <MessageCircle size={18} />
-              Preciso de ajuda
-            </a>
+            <div className="manage-booking-form">
+              <div className="manage-booking-field">
+                <label>Telefone *</label>
+                <input
+                  inputMode="tel"
+                  autoComplete="tel"
+                  placeholder="(41) 99999-9999"
+                  value={bookingLookupPhone}
+                  onChange={(event) =>
+                    setBookingLookupPhone(event.target.value)
+                  }
+                />
+              </div>
+
+              <div className="manage-booking-field">
+                <label>Protocolo *</label>
+                <input
+                  autoComplete="off"
+                  placeholder="Número do protocolo"
+                  value={bookingLookupProtocol}
+                  onChange={(event) =>
+                    setBookingLookupProtocol(event.target.value)
+                  }
+                />
+              </div>
+
+              <div className="manage-booking-search">
+                <button
+                  type="button"
+                  className="button button-primary"
+                  disabled={bookingLookupLoading}
+                  onClick={() => void lookupMyBookings()}
+                >
+                  <Search size={18} />
+                  {bookingLookupLoading
+                    ? 'Consultando...'
+                    : 'Ver meu agendamento'}
+                </button>
+              </div>
+            </div>
+
+            <small>
+              Para sua segurança, a consulta exige protocolo e telefone/WhatsApp.
+            </small>
+
+            {bookingLookupMessage && (
+              <div className="manage-booking-message">
+                {bookingLookupMessage}
+              </div>
+            )}
+
+            {bookingLookupResults.length > 0 && (
+              <div className="manage-booking-results">
+                {bookingLookupResults.map((item, index) => {
+                  const startAt = bookingResultStart(item)
+                  const protocol = bookingResultProtocol(item)
+                  const service = bookingResultService(item)
+                  const location = bookingResultLocation(item)
+                  const provider = bookingResultProvider(item)
+                  const status =
+                    text(item, ['status'], 'agendado')
+                      .replaceAll('_', ' ')
+
+                  const dateTime =
+                    startAt
+                      ? new Date(startAt)
+                      : null
+
+                  const calendarEvent = {
+                    title: `Consulta - ${service}`,
+                    startAt,
+                    durationMinutes:
+                      Number(
+                        text(
+                          item,
+                          ['duration_minutes', 'duration'],
+                          '60',
+                        ),
+                      ) || 60,
+                    location,
+                    description: [
+                      'Agendamento na Clínica Dra. Andressa Dallarmi.',
+                      `Profissional: ${provider}`,
+                      `Protocolo: ${protocol}`,
+                    ].join('\n'),
+                    url:
+                      window.location.origin +
+                      '/agendamento',
+                  }
+
+                  const help = whatsappUrl(
+                    [
+                      'Olá! Gostaria de ajuda com este agendamento:',
+                      `Protocolo: ${protocol}`,
+                      `Serviço: ${service}`,
+                      startAt
+                        ? `Data/hora: ${new Date(startAt).toLocaleString('pt-BR')}`
+                        : '',
+                    ].filter(Boolean).join('\n'),
+                  )
+
+                  return (
+                    <article
+                      className="manage-booking-result"
+                      key={
+                        text(
+                          item,
+                          ['id', 'appointment_id'],
+                          String(index),
+                        )
+                      }
+                    >
+                      <div className="manage-booking-result-head">
+                        <div>
+                          <small>Protocolo</small>
+                          <strong>{protocol}</strong>
+                        </div>
+
+                        <span className="manage-booking-status">
+                          {status}
+                        </span>
+                      </div>
+
+                      <div className="manage-booking-result-grid">
+                        <div>
+                          <CalendarDays size={17} />
+                          <span>
+                            <small>Data</small>
+                            <strong>
+                              {dateTime
+                                ? dateTime.toLocaleDateString('pt-BR')
+                                : 'A confirmar'}
+                            </strong>
+                          </span>
+                        </div>
+
+                        <div>
+                          <Clock3 size={17} />
+                          <span>
+                            <small>Horário</small>
+                            <strong>
+                              {dateTime
+                                ? dateTime.toLocaleTimeString(
+                                    'pt-BR',
+                                    {
+                                      hour: '2-digit',
+                                      minute: '2-digit',
+                                    },
+                                  )
+                                : 'A confirmar'}
+                            </strong>
+                          </span>
+                        </div>
+
+                        <div>
+                          <UserRound size={17} />
+                          <span>
+                            <small>Atendimento</small>
+                            <strong>{service}</strong>
+                          </span>
+                        </div>
+
+                        <div>
+                          <MapPin size={17} />
+                          <span>
+                            <small>Unidade</small>
+                            <strong>{location}</strong>
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="manage-booking-result-actions">
+                        {startAt && (
+                          <>
+                            <a
+                              className="button button-outline"
+                              href={buildGoogleCalendarUrl(calendarEvent)}
+                              target="_blank"
+                              rel="noreferrer"
+                            >
+                              <CalendarDays size={16} />
+                              Google Agenda
+                            </a>
+
+                            <button
+                              type="button"
+                              className="button button-outline"
+                              onClick={() =>
+                                downloadCalendarFile(
+                                  calendarEvent,
+                                  `agendamento-${protocol}.ics`,
+                                )
+                              }
+                            >
+                              <CalendarDays size={16} />
+                              iPhone / Outlook
+                            </button>
+                          </>
+                        )}
+
+                        <a
+                          className="button button-outline"
+                          href={help}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          <MessageCircle size={16} />
+                          Solicitar ajuda
+                        </a>
+                      </div>
+                    </article>
+                  )
+                })}
+              </div>
+            )}
+
+            <div className="manage-help-actions">
+              <a
+                href={whatsappHelp()}
+                target="_blank"
+                rel="noreferrer"
+                className="button button-outline"
+              >
+                <MessageCircle size={18} />
+                Não encontrei / preciso de ajuda
+              </a>
+            </div>
           </div>
         ) : (
           <div className="booking-workspace">
@@ -1226,8 +1889,7 @@ export default function Booking() {
 
                           <p>
                             Localize seu cadastro
-                            utilizando CPF
-                            e telefone.
+                            utilizando telefone, data de nascimento e e-mail.
                           </p>
                         </div>
 
@@ -1296,40 +1958,49 @@ export default function Booking() {
                           </h3>
 
                           <p>
-                            Para sua segurança,
-                            informe CPF
-                            e telefone cadastrados
-                            na clínica.
+                            Para sua segurança, informe
+                            telefone/WhatsApp, data de nascimento
+                            e e-mail cadastrados na clínica.
                           </p>
                         </div>
                       </div>
 
                       <div className="form-grid two">
                         <label>
-                          CPF *
+                          Telefone / WhatsApp *
                           <input
-                            value={existingCpf}
+                            value={existingPhone}
                             onChange={(e) =>
-                              setExistingCpf(
-                                e.target.value,
-                              )
+                              setExistingPhone(e.target.value)
                             }
-                            placeholder="000.000.000-00"
-                            autoComplete="off"
+                            placeholder="(41) 99999-9999"
+                            autoComplete="tel"
+                            inputMode="tel"
                           />
                         </label>
 
                         <label>
-                          Telefone *
+                          Data de nascimento *
                           <input
-                            value={existingPhone}
+                            type="date"
+                            value={existingBirthDate}
                             onChange={(e) =>
-                              setExistingPhone(
-                                e.target.value,
-                              )
+                              setExistingBirthDate(e.target.value)
                             }
-                            placeholder="(41) 99999-9999"
-                            autoComplete="tel"
+                            autoComplete="bday"
+                          />
+                        </label>
+
+                        <label className="full">
+                          E-mail *
+                          <input
+                            type="email"
+                            value={existingEmail}
+                            onChange={(e) =>
+                              setExistingEmail(e.target.value)
+                            }
+                            autoComplete="email"
+                            placeholder="seuemail@exemplo.com"
                           />
                         </label>
                       </div>
@@ -1419,11 +2090,9 @@ export default function Booking() {
                           </h3>
 
                           <p>
-                            Antes de criar um
-                            novo paciente,
-                            o sistema verificará
-                            CPF e telefone
-                            para evitar duplicação.
+                            Para evitar duplicidade, o sistema
+                            verificará somente seus dados básicos:
+                            telefone, nascimento e e-mail.
                           </p>
                         </div>
                       </div>
@@ -1432,82 +2101,61 @@ export default function Booking() {
                         <label>
                           Nome completo *
                           <input
-                            value={
-                              patient.fullName
-                            }
+                            value={patient.fullName}
                             onChange={(e) =>
                               setPatient({
                                 ...patient,
-                                fullName:
-                                  e.target.value,
+                                fullName: e.target.value,
                               })
                             }
+                            autoComplete="name"
                           />
                         </label>
 
                         <label>
-                          Telefone *
+                          Telefone / WhatsApp *
                           <input
-                            value={
-                              patient.phone
-                            }
+                            value={patient.phone}
                             onChange={(e) =>
                               setPatient({
                                 ...patient,
-                                phone:
-                                  e.target.value,
+                                phone: e.target.value,
                               })
                             }
+                            autoComplete="tel"
+                            inputMode="tel"
+                            placeholder="(41) 99999-9999"
                           />
                         </label>
 
                         <label>
-                          CPF
-                          <input
-                            value={
-                              patient.cpf
-                            }
-                            onChange={(e) =>
-                              setPatient({
-                                ...patient,
-                                cpf:
-                                  e.target.value,
-                              })
-                            }
-                          />
-                        </label>
-
-                        <label>
-                          Data de nascimento
+                          Data de nascimento *
                           <input
                             type="date"
-                            value={
-                              patient.birthDate
-                            }
+                            value={patient.birthDate}
                             onChange={(e) =>
                               setPatient({
                                 ...patient,
-                                birthDate:
-                                  e.target.value,
+                                birthDate: e.target.value,
                               })
                             }
+                            autoComplete="bday"
                           />
                         </label>
 
-                        <label className="full">
-                          E-mail
+                        <label>
+                          E-mail *
                           <input
                             type="email"
-                            value={
-                              patient.email
-                            }
+                            value={patient.email}
                             onChange={(e) =>
                               setPatient({
                                 ...patient,
-                                email:
-                                  e.target.value,
+                                email: e.target.value,
                               })
                             }
+                            autoComplete="email"
+                            placeholder="seuemail@exemplo.com"
                           />
                         </label>
                       </div>
@@ -1556,12 +2204,16 @@ export default function Booking() {
                                 false,
                               )
 
-                              setExistingCpf(
-                                patient.cpf || '',
-                              )
-
                               setExistingPhone(
                                 patient.phone || '',
+                              )
+
+                              setExistingBirthDate(
+                                patient.birthDate || '',
+                              )
+
+                              setExistingEmail(
+                                patient.email || '',
                               )
 
                               setIdentityMode(
@@ -1818,8 +2470,171 @@ export default function Booking() {
                 </div>
               )}
 
+              {/* BLOCO_32_CALENDARIO_MENSAL_UI */}
               {step === 4 && (
                 <div className="booking-step-content">
+                  <style>{`
+                    .booking-month-shell {
+                      margin-top: 28px;
+                      border: 1px solid #eadde0;
+                      border-radius: 24px;
+                      padding: 22px;
+                      background: linear-gradient(180deg,#fff 0%,#fffafa 100%);
+                    }
+                    .booking-month-head {
+                      display: flex;
+                      align-items: center;
+                      justify-content: space-between;
+                      gap: 12px;
+                      margin-bottom: 18px;
+                    }
+                    .booking-month-title {
+                      font-size: 21px;
+                      font-weight: 800;
+                      color: #1f1c1d;
+                      text-align: center;
+                    }
+                    .booking-month-arrow {
+                      width: 42px;
+                      height: 42px;
+                      border-radius: 13px;
+                      border: 1px solid #eadde0;
+                      background: #fff;
+                      color: #7b0e29;
+                      display: inline-flex;
+                      align-items: center;
+                      justify-content: center;
+                      cursor: pointer;
+                    }
+                    .booking-month-arrow:disabled {
+                      opacity: .3;
+                      cursor: not-allowed;
+                    }
+                    .booking-calendar-grid {
+                      display: grid;
+                      grid-template-columns: repeat(7,minmax(0,1fr));
+                      gap: 8px;
+                    }
+                    .booking-weekday {
+                      text-align: center;
+                      font-size: 11px;
+                      font-weight: 800;
+                      letter-spacing: .06em;
+                      color: #8a7379;
+                      padding: 8px 2px;
+                    }
+                    .booking-day {
+                      min-height: 84px;
+                      border-radius: 16px;
+                      border: 1px solid #ece6e8;
+                      padding: 9px 7px;
+                      background: #f7f6f6;
+                      color: #8d898a;
+                      text-align: left;
+                      display: flex;
+                      flex-direction: column;
+                      justify-content: space-between;
+                      gap: 5px;
+                    }
+                    button.booking-day {
+                      cursor: pointer;
+                    }
+                    .booking-day.available {
+                      background: #effaf3;
+                      border-color: #b9e4c8;
+                      color: #155b32;
+                      box-shadow: 0 7px 20px rgba(22,112,61,.06);
+                    }
+                    .booking-day.available:hover {
+                      transform: translateY(-1px);
+                      border-color: #75c593;
+                    }
+                    .booking-day.sold-out {
+                      background: #fff9e7;
+                      border-color: #f1d98a;
+                      color: #815d00;
+                    }
+                    .booking-day.selected {
+                      outline: 2px solid #7b0e29;
+                      outline-offset: 1px;
+                      box-shadow: 0 8px 24px rgba(123,14,41,.13);
+                    }
+                    .booking-day.outside {
+                      opacity: .42;
+                    }
+                    .booking-day-number {
+                      font-size: 15px;
+                      font-weight: 800;
+                      line-height: 1;
+                    }
+                    .booking-day-status {
+                      font-size: 10px;
+                      font-weight: 750;
+                      line-height: 1.15;
+                    }
+                    .booking-calendar-legend {
+                      display: flex;
+                      flex-wrap: wrap;
+                      gap: 12px 18px;
+                      margin-top: 15px;
+                      font-size: 12px;
+                      color: #6e6164;
+                    }
+                    .booking-calendar-legend span {
+                      display: inline-flex;
+                      align-items: center;
+                      gap: 7px;
+                    }
+                    .booking-calendar-dot {
+                      width: 9px;
+                      height: 9px;
+                      border-radius: 50%;
+                      display: inline-block;
+                    }
+                    .booking-selected-date {
+                      margin-top: 24px;
+                      margin-bottom: 12px;
+                      font-size: 16px;
+                      font-weight: 750;
+                      color: #341f25;
+                    }
+                    .booking-calendar-loading {
+                      text-align: center;
+                      padding: 10px;
+                      margin-bottom: 12px;
+                      color: #7b0e29;
+                      font-size: 13px;
+                      font-weight: 700;
+                    }
+                    @media (max-width: 680px) {
+                      .booking-month-shell {
+                        padding: 14px 10px;
+                        border-radius: 18px;
+                      }
+                      .booking-calendar-grid {
+                        gap: 4px;
+                      }
+                      .booking-day {
+                        min-height: 65px;
+                        border-radius: 11px;
+                        padding: 7px 4px;
+                      }
+                      .booking-day-number {
+                        font-size: 13px;
+                      }
+                      .booking-day-status {
+                        font-size: 8px;
+                      }
+                      .booking-month-title {
+                        font-size: 17px;
+                      }
+                      .booking-month-arrow {
+                        width: 36px;
+                        height: 36px;
+                      }
+                    }
+                  `}</style>
+
                   <span className="eyebrow">
                     Passo 04
                   </span>
@@ -1829,40 +2644,243 @@ export default function Booking() {
                   </h2>
 
                   <p>
-                    Horários ocupados,
-                    bloqueados ou não liberados
-                    pelo sistema não aparecem.
+                    Veja as vagas do mês e selecione uma data.
+                    Depois escolha um dos horários disponíveis.
                   </p>
 
-                  <div className="date-picker-line">
-                    <label>
-                      Data
-                      <input
-                        type="date"
-                        min={today()}
-                        value={date}
-                        onChange={(e) => {
-                          setDate(
-                            e.target.value,
+                  <div className="booking-month-shell">
+                    <div className="booking-month-head">
+                      <button
+                        type="button"
+                        className="booking-month-arrow"
+                        disabled={previousBookingMonthDisabled}
+                        onClick={() => {
+                          setCalendarMonth(
+                            shiftBookingMonth(
+                              calendarMonth,
+                              -1,
+                            ),
+                          )
+                          setDate('')
+                          setSelectedSlotStart('')
+                          setSlots([])
+                        }}
+                        aria-label="Mês anterior"
+                      >
+                        <ChevronLeft size={20} />
+                      </button>
+
+                      <div className="booking-month-title">
+                        {bookingMonthLabel(
+                          calendarMonth,
+                        )}
+                      </div>
+
+                      <button
+                        type="button"
+                        className="booking-month-arrow"
+                        disabled={nextBookingMonthDisabled}
+                        onClick={() => {
+                          setCalendarMonth(
+                            nextBookingMonth,
+                          )
+                          setDate('')
+                          setSelectedSlotStart('')
+                          setSlots([])
+                        }}
+                        aria-label="Próximo mês"
+                      >
+                        <ChevronRight size={20} />
+                      </button>
+                    </div>
+
+                    {monthLoading && (
+                      <div className="booking-calendar-loading">
+                        Atualizando vagas do mês...
+                      </div>
+                    )}
+
+                    <div className="booking-calendar-grid">
+                      {[
+                        'DOM',
+                        'SEG',
+                        'TER',
+                        'QUA',
+                        'QUI',
+                        'SEX',
+                        'SÁB',
+                      ].map((label) => (
+                        <div
+                          className="booking-weekday"
+                          key={label}
+                        >
+                          {label}
+                        </div>
+                      ))}
+
+                      {bookingCalendarDays.map(
+                        (calendarDate, index) => {
+                          if (!calendarDate) {
+                            return (
+                              <div
+                                key={'empty-' + index}
+                              />
+                            )
+                          }
+
+                          const item =
+                            monthSummaryMap.get(
+                              calendarDate,
+                            )
+
+                          const availableCount =
+                            Number(
+                              item?.available_count ||
+                              0,
+                            )
+
+                          const dayStatus =
+                            text(
+                              item,
+                              ['status'],
+                              'unavailable',
+                            )
+
+                          const inRange =
+                            calendarDate >= today() &&
+                            calendarDate <=
+                              lastAllowedBookingDate
+
+                          const selectable =
+                            inRange &&
+                            availableCount > 0
+
+                          const soldOut =
+                            inRange &&
+                            dayStatus === 'sold_out'
+
+                          const selected =
+                            date === calendarDate
+
+                          const dayNumber =
+                            Number(
+                              calendarDate.slice(8, 10),
+                            )
+
+                          const className = [
+                            'booking-day',
+                            selectable
+                              ? 'available'
+                              : soldOut
+                                ? 'sold-out'
+                                : '',
+                            selected
+                              ? 'selected'
+                              : '',
+                            !inRange
+                              ? 'outside'
+                              : '',
+                          ]
+                            .filter(Boolean)
+                            .join(' ')
+
+                          const content = (
+                            <>
+                              <span className="booking-day-number">
+                                {dayNumber}
+                              </span>
+
+                              <span className="booking-day-status">
+                                {selectable
+                                  ? availableCount === 1
+                                    ? '1 vaga'
+                                    : availableCount +
+                                      ' vagas'
+                                  : soldOut
+                                    ? 'Esgotado'
+                                    : inRange
+                                      ? 'Sem agenda'
+                                      : ''}
+                              </span>
+                            </>
                           )
 
-                          setSelectedSlotStart(
-                            '',
+                          if (!selectable) {
+                            return (
+                              <div
+                                key={calendarDate}
+                                className={className}
+                                title={
+                                  soldOut
+                                    ? 'Vagas esgotadas'
+                                    : 'Data indisponível'
+                                }
+                              >
+                                {content}
+                              </div>
+                            )
+                          }
+
+                          return (
+                            <button
+                              type="button"
+                              key={calendarDate}
+                              className={className}
+                              onClick={() => {
+                                setDate(
+                                  calendarDate,
+                                )
+                                setSelectedSlotStart('')
+                              }}
+                            >
+                              {content}
+                            </button>
                           )
-                        }}
-                      />
-                    </label>
+                        },
+                      )}
+                    </div>
+
+                    <div className="booking-calendar-legend">
+                      <span>
+                        <i
+                          className="booking-calendar-dot"
+                          style={{
+                            background: '#58b777',
+                          }}
+                        />
+                        Vagas disponíveis
+                      </span>
+
+                      <span>
+                        <i
+                          className="booking-calendar-dot"
+                          style={{
+                            background: '#e2bd45',
+                          }}
+                        />
+                        Vagas esgotadas
+                      </span>
+
+                      <span>
+                        <i
+                          className="booking-calendar-dot"
+                          style={{
+                            background: '#c7c4c5',
+                          }}
+                        />
+                        Sem atendimento
+                      </span>
+                    </div>
                   </div>
 
                   {!date ? (
                     <div className="booking-empty">
-                      Escolha uma data para
-                      consultar os horários
-                      disponíveis.
+                      Clique em uma data verde para ver
+                      os horários disponíveis.
                     </div>
                   ) : slotsLoading ? (
                     <div className="booking-empty">
-                      Consultando agenda...
+                      Consultando horários...
                     </div>
                   ) : slots.length === 0 ? (
                     <div className="booking-empty important">
@@ -1870,50 +2888,54 @@ export default function Booking() {
 
                       <div>
                         <strong>
-                          Nenhum horário disponível
-                          nesta data
+                          As vagas desta data acabaram de mudar
                         </strong>
 
                         <span>
-                          Escolha outra data
-                          para continuar.
+                          Escolha outra data disponível no
+                          calendário.
                         </span>
                       </div>
                     </div>
                   ) : (
-                    <div className="time-grid">
-                      {slots.map(
-                        (slot, index) => {
-                          const start =
-                            slotStart(slot)
+                    <>
+                      <div className="booking-selected-date">
+                        Horários disponíveis em {formatDate(date)}
+                      </div>
 
-                          if (!start) return null
+                      <div className="time-grid">
+                        {slots.map(
+                          (slot, index) => {
+                            const start =
+                              slotStart(slot)
 
-                          return (
-                            <button
-                              key={
-                                `${start}-${index}`
-                              }
-                              className={
-                                selectedSlotStart ===
-                                start
-                                  ? 'selected'
-                                  : ''
-                              }
-                              onClick={() =>
-                                setSelectedSlotStart(
-                                  start,
-                                )
-                              }
-                            >
-                              {formatTime(
-                                start,
-                              )}
-                            </button>
-                          )
-                        },
-                      )}
-                    </div>
+                            if (!start) return null
+
+                            return (
+                              <button
+                                key={
+                                  start + '-' + index
+                                }
+                                className={
+                                  selectedSlotStart ===
+                                  start
+                                    ? 'selected'
+                                    : ''
+                                }
+                                onClick={() => {
+                                  setSelectedSlotStart(
+                                    start,
+                                  )
+                                  setStep(5)
+                                }}
+                              >
+                                {formatTime(start)}
+                              </button>
+                            )
+                          },
+                        )}
+                      </div>
+                    </>
                   )}
                 </div>
               )}
@@ -2075,3 +3097,4 @@ export default function Booking() {
     </section>
   )
 }
+

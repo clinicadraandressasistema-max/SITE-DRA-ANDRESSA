@@ -1,0 +1,607 @@
+.dallarmi-extra-overline {
+  margin: 0 0 16px;
+  color: #74141c;
+  font-family: Arial, sans-serif;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .28em;
+}
+
+.dallarmi-content-callout {
+  padding: 0 0 105px;
+  background: #faf8f6;
+}
+
+.dallarmi-content-callout-inner {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 60px;
+  padding: 48px 55px;
+  background: #fff;
+  border: 1px solid #eadfda;
+  border-radius: 18px;
+}
+
+.dallarmi-content-callout h3,
+.dallarmi-team-cta h2,
+.dallarmi-locations h2,
+.dallarmi-content-intro h2 {
+  margin: 0;
+  color: #292321;
+  font-family: "Playfair Display", Georgia, serif;
+  font-weight: 500;
+  letter-spacing: -.025em;
+}
+
+.dallarmi-content-callout h3 {
+  font-size: 38px;
+  line-height: 1.08;
+}
+
+.dallarmi-content-callout h3 em,
+.dallarmi-team-cta h2 em,
+.dallarmi-locations h2 em,
+.dallarmi-content-intro h2 em {
+  color: #74141c;
+  font-weight: 500;
+}
+
+.dallarmi-content-callout p:not(.dallarmi-extra-overline) {
+  max-width: 700px;
+  margin: 19px 0 0;
+  color: #6b625f;
+  font-size: 12px;
+  line-height: 1.75;
+}
+
+.dallarmi-content-callout-inner > button,
+.dallarmi-team-cta-inner > button {
+  min-height: 49px;
+  display: inline-flex;
+  align-items: center;
+  gap: 15px;
+  padding: 0 23px;
+  color: #fff;
+  background: #74141c;
+  border: 0;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+  transition: .25s ease;
+}
+
+.dallarmi-content-callout-inner > button:hover,
+.dallarmi-team-cta-inner > button:hover {
+  background: #591016;
+  transform: translateY(-2px);
+}
+
+/* TELA DE CONTEÚDOS */
+
+.dallarmi-content-screen {
+  position: fixed;
+  z-index: 100000;
+  inset: 0;
+  color: #292321;
+  background: #fff;
+}
+
+.dallarmi-content-header {
+  height: 78px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 34px;
+  background: rgba(255,255,255,.97);
+  border-bottom: 1px solid #ece3df;
+  backdrop-filter: blur(12px);
+}
+
+.dallarmi-content-header > div {
+  display: flex;
+  flex-direction: column;
+}
+
+.dallarmi-content-header span {
+  color: #74141c;
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 23px;
+}
+
+.dallarmi-content-header small {
+  margin-top: 3px;
+  color: #8b7370;
+  font-size: 7px;
+  font-weight: 700;
+  letter-spacing: .17em;
+}
+
+.dallarmi-content-header button {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  color: #74141c;
+  background: #faf7f5;
+  border: 1px solid #eadfda;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 24px;
+}
+
+.dallarmi-content-scroll {
+  height: calc(100vh - 78px);
+  overflow-y: auto;
+  padding: 75px max(24px, calc((100vw - 1180px) / 2)) 90px;
+}
+
+.dallarmi-content-intro {
+  max-width: 750px;
+}
+
+.dallarmi-content-intro h2 {
+  font-size: clamp(43px, 5vw, 67px);
+  line-height: 1.02;
+}
+
+.dallarmi-content-intro > p:not(.dallarmi-extra-overline) {
+  max-width: 630px;
+  margin: 24px 0 0;
+  color: #6b625f;
+  font-size: 13px;
+  line-height: 1.8;
+}
+
+.dallarmi-content-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+  margin: 43px 0 30px;
+}
+
+.dallarmi-content-filters button {
+  padding: 9px 15px;
+  color: #675e5b;
+  background: #fff;
+  border: 1px solid #e7ddd8;
+  border-radius: 100px;
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.dallarmi-content-filters button.active {
+  color: #fff;
+  background: #74141c;
+  border-color: #74141c;
+}
+
+.dallarmi-content-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+}
+
+.dallarmi-content-card {
+  overflow: hidden;
+  background: #fff;
+  border: 1px solid #eae0dc;
+  border-radius: 14px;
+}
+
+.dallarmi-content-image {
+  position: relative;
+  height: 250px;
+  overflow: hidden;
+  background: #f3eeeb;
+}
+
+.dallarmi-content-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.dallarmi-content-image > span {
+  position: absolute;
+  top: 17px;
+  left: 17px;
+  padding: 8px 11px;
+  color: #74141c;
+  background: rgba(255,255,255,.92);
+  border-radius: 100px;
+  font-size: 7px;
+  font-weight: 800;
+  letter-spacing: .12em;
+}
+
+.dallarmi-content-card-body {
+  padding: 25px;
+}
+
+.dallarmi-content-card h3 {
+  margin: 0;
+  color: #302927;
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 22px;
+  font-weight: 500;
+  line-height: 1.15;
+}
+
+.dallarmi-content-card p {
+  min-height: 60px;
+  margin: 12px 0 18px;
+  color: #6c625f;
+  font-size: 10px;
+  line-height: 1.7;
+}
+
+.dallarmi-content-card a {
+  color: #74141c;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.dallarmi-content-soon {
+  color: #9a8d89;
+  font-size: 9px;
+  font-weight: 600;
+}
+
+.dallarmi-results-note {
+  margin-top: 35px;
+  padding: 25px 28px;
+  background: #faf7f5;
+  border-left: 2px solid #b99350;
+}
+
+.dallarmi-results-note strong {
+  color: #74141c;
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 17px;
+  font-weight: 500;
+}
+
+.dallarmi-results-note p {
+  margin: 7px 0 0;
+  color: #746a67;
+  font-size: 9px;
+  line-height: 1.6;
+}
+
+/* CORPO CLÍNICO */
+
+.dallarmi-team-cta {
+  padding: 0 0 105px;
+  background: #faf8f6;
+}
+
+.dallarmi-team-cta-inner {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 60px;
+  padding: 55px;
+  background: #fff;
+  border: 1px solid #eadfda;
+  border-radius: 18px;
+}
+
+.dallarmi-team-cta h2 {
+  font-size: 42px;
+  line-height: 1.06;
+}
+
+.dallarmi-team-cta p:not(.dallarmi-extra-overline) {
+  max-width: 680px;
+  margin: 19px 0 0;
+  color: #6b625f;
+  font-size: 12px;
+  line-height: 1.75;
+}
+
+/* LOCAIS */
+
+.dallarmi-locations {
+  padding: 105px 0;
+  background: #fff;
+}
+
+.dallarmi-locations-heading {
+  display: grid;
+  grid-template-columns: 1fr .7fr;
+  align-items: end;
+  gap: 70px;
+  margin-bottom: 45px;
+}
+
+.dallarmi-locations h2 {
+  font-size: clamp(40px, 4vw, 56px);
+  line-height: 1.05;
+}
+
+.dallarmi-locations-heading > p {
+  margin: 0 0 5px;
+  color: #6b625f;
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+.dallarmi-locations-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+
+.dallarmi-location-card {
+  overflow: hidden;
+  background: #fff;
+  border: 1px solid #e9dfda;
+  border-radius: 16px;
+}
+
+.dallarmi-location-image {
+  position: relative;
+  height: 380px;
+  overflow: hidden;
+  background: #f3eeeb;
+}
+
+.dallarmi-location-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.dallarmi-location-image > span {
+  position: absolute;
+  right: 20px;
+  bottom: 18px;
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  color: #74141c;
+  background: rgba(255,255,255,.93);
+  border-radius: 50%;
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 12px;
+}
+
+.dallarmi-location-body {
+  padding: 28px;
+}
+
+.dallarmi-location-body > small {
+  color: #a28681;
+  font-size: 7px;
+  font-weight: 700;
+  letter-spacing: .17em;
+}
+
+.dallarmi-location-body h3 {
+  margin: 9px 0;
+  color: #302927;
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 25px;
+  font-weight: 500;
+}
+
+.dallarmi-location-body p {
+  margin: 0;
+  color: #6b625f;
+  font-size: 10px;
+  line-height: 1.6;
+}
+
+.dallarmi-location-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+  margin-top: 21px;
+}
+
+.dallarmi-location-actions button,
+.dallarmi-location-actions a {
+  padding: 0;
+  color: #74141c;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+/* RESPONSIVO */
+
+@media (max-width: 850px) {
+  .dallarmi-content-callout-inner,
+  .dallarmi-team-cta-inner,
+  .dallarmi-locations-heading {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+
+  .dallarmi-content-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .dallarmi-location-image {
+    height: 300px;
+  }
+}
+
+@media (max-width: 560px) {
+  .dallarmi-content-callout {
+    padding-bottom: 70px;
+  }
+
+  .dallarmi-content-callout-inner,
+  .dallarmi-team-cta-inner {
+    padding: 32px 24px;
+  }
+
+  .dallarmi-content-callout h3,
+  .dallarmi-team-cta h2 {
+    font-size: 32px;
+  }
+
+  .dallarmi-content-callout-inner > button,
+  .dallarmi-team-cta-inner > button {
+    width: 100%;
+  }
+
+  .dallarmi-content-scroll {
+    padding: 50px 18px 70px;
+  }
+
+  .dallarmi-content-intro h2 {
+    font-size: 40px;
+  }
+
+  .dallarmi-content-grid,
+  .dallarmi-locations-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .dallarmi-content-image {
+    height: 230px;
+  }
+
+  .dallarmi-team-cta {
+    padding-bottom: 70px;
+  }
+
+  .dallarmi-locations {
+    padding: 75px 0;
+  }
+
+  .dallarmi-locations h2 {
+    font-size: 38px;
+  }
+
+  .dallarmi-location-image {
+    height: 280px;
+  }
+
+  .dallarmi-content-header {
+    height: 68px;
+    padding: 0 18px;
+  }
+
+  .dallarmi-content-scroll {
+    height: calc(100vh - 68px);
+  }
+}
+/* GALERIA AUTOMÁTICA DAS UNIDADES */
+
+#dallarmi-public-home .hero-slide picture {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+#dallarmi-public-home .dallarmi-unit-gallery {
+  position: relative;
+}
+
+#dallarmi-public-home .dallarmi-unit-gallery > img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+#dallarmi-public-home .dallarmi-unit-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  background: #f6f1ee;
+  text-align: center;
+}
+
+#dallarmi-public-home .dallarmi-unit-placeholder span {
+  color: #74141c;
+  font-family: Georgia, serif;
+  font-size: 20px;
+}
+
+#dallarmi-public-home .dallarmi-unit-placeholder p {
+  color: #746967;
+  font-size: 12px;
+}
+
+#dallarmi-public-home .dallarmi-unit-prev,
+#dallarmi-public-home .dallarmi-unit-next {
+  position: absolute;
+  z-index: 4;
+  top: 50%;
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  color: #74141c;
+  background: rgba(255,255,255,.94);
+  border: 0;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 28px;
+  transform: translateY(-50%);
+  box-shadow: 0 6px 20px rgba(0,0,0,.1);
+}
+
+#dallarmi-public-home .dallarmi-unit-prev {
+  left: 15px;
+}
+
+#dallarmi-public-home .dallarmi-unit-next {
+  right: 15px;
+}
+
+#dallarmi-public-home .dallarmi-unit-dots {
+  position: absolute;
+  z-index: 4;
+  bottom: 19px;
+  left: 50%;
+  display: flex;
+  gap: 8px;
+  transform: translateX(-50%);
+}
+
+#dallarmi-public-home .dallarmi-unit-dots button {
+  width: 9px;
+  height: 9px;
+  padding: 0;
+  background: rgba(255,255,255,.6);
+  border: 1px solid rgba(118,20,28,.35);
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+#dallarmi-public-home .dallarmi-unit-dots button.active {
+  width: 24px;
+  background: white;
+  border-radius: 20px;
+}
+
+#dallarmi-public-home .dallarmi-unit-number {
+  position: absolute;
+  z-index: 5;
+  right: 12px;
+  bottom: 12px;
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  color: #74141c;
+  background: rgba(255,255,255,.94);
+  border-radius: 50%;
+  font-family: Georgia, serif;
+  font-size: 12px;
+}

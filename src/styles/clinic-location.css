@@ -1,0 +1,449 @@
+/* ==========================================================
+   LOCALIZACAO - DRA. ANDRESSA DALLARMI
+   ========================================================== */
+
+.clinic-location-section {
+  position: relative;
+  overflow: hidden;
+  padding: 92px 0;
+  background:
+    radial-gradient(
+      circle at 92% 0%,
+      rgba(141, 28, 55, 0.10),
+      transparent 31%
+    ),
+    linear-gradient(180deg, #fff 0%, #fbf6f3 100%);
+  border-top: 1px solid rgba(96, 45, 58, 0.08);
+}
+
+.clinic-location-shell {
+  width: min(1180px, calc(100% - 40px));
+  margin: 0 auto;
+}
+
+.clinic-location-heading {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 440px);
+  gap: 60px;
+  align-items: end;
+  margin-bottom: 36px;
+}
+
+.clinic-location-eyebrow,
+.clinic-location-mini-label,
+.transport-modal-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: #8b1f3b;
+  font-size: 0.65rem;
+  line-height: 1;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+}
+
+.clinic-location-heading h2 {
+  margin: 14px 0 0;
+  font-family: 'Cormorant Garamond', serif;
+  color: #21191c;
+  font-size: clamp(3rem, 5vw, 5rem);
+  font-weight: 500;
+  line-height: 0.94;
+  letter-spacing: -0.035em;
+}
+
+.clinic-location-heading > p {
+  margin: 0;
+  color: #766a6e;
+  font-size: 0.88rem;
+  line-height: 1.75;
+}
+
+.clinic-location-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(330px, 0.75fr);
+  min-height: 490px;
+  overflow: hidden;
+  border: 1px solid rgba(91, 39, 53, 0.11);
+  border-radius: 28px;
+  background: #fff;
+  box-shadow: 0 28px 70px rgba(64, 22, 35, 0.08);
+}
+
+.clinic-map-card {
+  position: relative;
+  min-height: 490px;
+  overflow: hidden;
+  background: #eee8e6;
+}
+
+.clinic-map-card iframe {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 490px;
+  border: 0;
+  filter: saturate(0.86) contrast(0.96);
+}
+
+.clinic-map-expand {
+  position: absolute;
+  right: 18px;
+  bottom: 18px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 11px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 10px 30px rgba(23, 11, 15, 0.14);
+  color: #631326;
+  font-size: 0.72rem;
+  font-weight: 800;
+  backdrop-filter: blur(10px);
+}
+
+.clinic-map-expand:hover {
+  color: #861a36;
+  transform: translateY(-2px);
+}
+
+.clinic-location-info {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: clamp(34px, 5vw, 60px);
+}
+
+.clinic-location-info h3 {
+  margin: 14px 0 26px;
+  font-family: 'Cormorant Garamond', serif;
+  color: #241b1e;
+  font-size: clamp(2rem, 3vw, 3rem);
+  font-weight: 600;
+  line-height: 1;
+}
+
+.clinic-address {
+  display: grid;
+  grid-template-columns: 26px 1fr;
+  gap: 11px;
+  padding: 18px 0 22px;
+  border-top: 1px solid rgba(91, 39, 53, 0.09);
+  border-bottom: 1px solid rgba(91, 39, 53, 0.09);
+  color: #8a1833;
+}
+
+.clinic-address svg {
+  margin-top: 2px;
+}
+
+.clinic-address > div {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.clinic-address strong {
+  color: #33292c;
+  font-size: 0.88rem;
+}
+
+.clinic-address span {
+  color: #74686c;
+  font-size: 0.77rem;
+  line-height: 1.6;
+}
+
+.clinic-location-actions {
+  display: grid;
+  gap: 10px;
+  margin-top: 24px;
+}
+
+.clinic-location-button {
+  min-height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  width: 100%;
+  padding: 13px 18px;
+  border-radius: 14px;
+  font-size: 0.76rem;
+  font-weight: 800;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease;
+  cursor: pointer;
+}
+
+.clinic-location-button-primary {
+  border: 1px solid #81182f;
+  background: #81182f;
+  color: #fff;
+  box-shadow: 0 12px 26px rgba(113, 18, 43, 0.17);
+}
+
+.clinic-location-button-primary:hover {
+  color: #fff;
+  background: #6f1228;
+  transform: translateY(-2px);
+}
+
+.clinic-location-button-secondary {
+  border: 1px solid rgba(103, 38, 55, 0.18);
+  background: #fff;
+  color: #67152a;
+}
+
+.clinic-location-button-secondary:hover {
+  border-color: rgba(126, 24, 49, 0.32);
+  background: #fff8fa;
+  transform: translateY(-2px);
+}
+
+.clinic-copy-address {
+  align-self: center;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 15px;
+  padding: 5px 3px;
+  border: 0;
+  background: transparent;
+  color: #786b70;
+  font-size: 0.69rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.clinic-copy-address:hover {
+  color: #861a36;
+}
+
+.clinic-location-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  margin-top: 22px;
+  color: #9a8e92;
+  font-size: 0.64rem;
+  line-height: 1.55;
+}
+
+.clinic-location-note svg {
+  flex: none;
+  margin-top: 1px;
+}
+
+/* MODAL */
+
+.transport-modal-backdrop {
+  position: fixed;
+  z-index: 160;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(22, 8, 13, 0.66);
+  backdrop-filter: blur(9px);
+  animation: transportFade 0.18s ease;
+}
+
+.transport-modal {
+  position: relative;
+  width: min(520px, 100%);
+  padding: 34px;
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  border-radius: 25px;
+  background: #fff;
+  box-shadow: 0 34px 100px rgba(17, 4, 8, 0.3);
+  animation: transportRise 0.22s ease;
+}
+
+.transport-modal h3 {
+  margin: 12px 0 8px;
+  font-family: 'Cormorant Garamond', serif;
+  color: #241b1e;
+  font-size: 2.3rem;
+  line-height: 1;
+}
+
+.transport-modal > p {
+  margin: 0 45px 22px 0;
+  color: #786c70;
+  font-size: 0.77rem;
+  line-height: 1.6;
+}
+
+.transport-modal-close {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(93, 34, 49, 0.12);
+  border-radius: 50%;
+  background: #fff;
+  color: #65152a;
+  cursor: pointer;
+}
+
+.transport-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.transport-option {
+  position: relative;
+  min-height: 104px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 17px 42px 17px 17px;
+  border: 1px solid rgba(92, 32, 48, 0.12);
+  border-radius: 17px;
+  background: #fcfaf9;
+  color: #33272b;
+  text-align: left;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.transport-option:hover {
+  border-color: rgba(131, 26, 52, 0.33);
+  background: #fff5f7;
+  transform: translateY(-2px);
+}
+
+.transport-option strong {
+  color: #71152c;
+  font-size: 0.82rem;
+}
+
+.transport-option span {
+  margin-top: 5px;
+  color: #8a7e82;
+  font-size: 0.65rem;
+  line-height: 1.4;
+}
+
+.transport-option svg {
+  position: absolute;
+  top: 17px;
+  right: 17px;
+  color: #9c2945;
+}
+
+.transport-copy {
+  width: 100%;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  margin-top: 12px;
+  border: 0;
+  border-radius: 13px;
+  background: #f4ecee;
+  color: #71152c;
+  font-size: 0.71rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+/* RESPONSIVO */
+
+@media (max-width: 900px) {
+  .clinic-location-heading {
+    grid-template-columns: 1fr;
+    gap: 22px;
+  }
+
+  .clinic-location-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .clinic-map-card,
+  .clinic-map-card iframe {
+    min-height: 390px;
+  }
+}
+
+@media (max-width: 620px) {
+  .clinic-location-section {
+    padding: 68px 0;
+  }
+
+  .clinic-location-shell {
+    width: min(100% - 28px, 1180px);
+  }
+
+  .clinic-location-heading {
+    margin-bottom: 24px;
+  }
+
+  .clinic-location-heading h2 {
+    font-size: 3.2rem;
+  }
+
+  .clinic-location-grid {
+    border-radius: 21px;
+  }
+
+  .clinic-map-card,
+  .clinic-map-card iframe {
+    min-height: 315px;
+  }
+
+  .clinic-location-info {
+    padding: 30px 22px 32px;
+  }
+
+  .clinic-location-info h3 {
+    font-size: 2.35rem;
+  }
+
+  .transport-modal {
+    padding: 27px 20px 20px;
+    border-radius: 21px;
+  }
+
+  .transport-options {
+    grid-template-columns: 1fr;
+  }
+
+  .transport-option {
+    min-height: 82px;
+  }
+}
+
+@keyframes transportFade {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes transportRise {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}

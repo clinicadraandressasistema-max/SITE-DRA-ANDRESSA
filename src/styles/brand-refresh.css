@@ -27,9 +27,30 @@ body,.site-shell{background:#fff;color:var(--brand-ink)}
   linear-gradient(120deg,#71122A 0%,#9a3652 58%,#FCE7DB 118%);
 }
 .theme-home .hero-copy h1 em{color:var(--brand-copper)}
-.theme-home .hero-copy p{color:rgba(252,231,219,.90)}
-.theme-home .hero-logo-card{border-color:rgba(252,231,219,.22);background:linear-gradient(145deg,rgba(255,255,255,.13),rgba(202,146,102,.07))}
-.theme-home .hero-logo-card img{background:transparent!important}
+.theme-home .hero-copy p{color:rgba(252,231,219,.92)}
+.theme-home .hero-logo-card{
+  min-height:520px;
+  border-radius:38px;
+  border:1px solid rgba(255,255,255,.18);
+  background:linear-gradient(180deg,rgba(255,255,255,.12),rgba(255,255,255,.05));
+  backdrop-filter:blur(14px);
+  box-shadow:0 30px 76px rgba(58,10,19,.18);
+}
+.theme-home .hero-logo-card img{
+  width:min(300px,82%);
+  margin-inline:auto;
+  background:transparent!important;
+  border-radius:0!important;
+  padding:0!important;
+  filter:drop-shadow(0 10px 28px rgba(58,10,19,.12));
+}
+.theme-home .hero-metric{align-items:center;text-align:center;margin-top:32px}
+.theme-home .hero-metric strong{font-size:2rem;line-height:1.05}
+.theme-home .hero-metric span{font-size:.88rem;color:#f7e7eb;margin-top:8px}
+.theme-home .hero-floating-card{
+  background:#fff;color:var(--brand-wine);border:1px solid rgba(113,18,42,.08);
+  box-shadow:0 20px 40px rgba(58,10,19,.14)
+}
 .theme-home .hero-marquee{color:var(--brand-blush);border-color:rgba(202,146,102,.32)}
 .theme-home .section-ivory{background:#fff}
 .theme-home .services-showcase{background:radial-gradient(circle at 90% 8%,rgba(202,146,102,.10),transparent 26%),linear-gradient(180deg,#fff 0%,rgba(252,231,219,.62) 100%)}
@@ -43,7 +64,52 @@ body,.site-shell{background:#fff;color:var(--brand-ink)}
 .theme-about .about-hero .eyebrow.light{color:var(--brand-copper)}
 .theme-about .about-hero h1{color:var(--brand-wine);text-shadow:none}
 .theme-about .about-hero p{color:var(--brand-taupe)}
-.theme-about .about-hero-portrait{border-color:rgba(113,18,42,.10);box-shadow:0 34px 80px rgba(113,18,42,.14)}
+.theme-about .about-hero-portrait{
+  min-height:640px!important;
+  border:none!important;
+  box-shadow:none!important;
+  background:transparent!important;
+  overflow:visible!important;
+}
+.theme-about .about-hero-portrait::before,
+.theme-about .about-hero-portrait::after{display:none!important;background:none!important}
+.theme-about .about-doctor-cutout{
+  height:100%!important;
+  width:auto!important;
+  max-width:none!important;
+  bottom:0!important;
+  right:-1%!important;
+  filter:drop-shadow(0 26px 34px rgba(39,9,17,.18))!important;
+}
+.theme-about .about-photo-caption{
+  left:26px!important;
+  right:26px!important;
+  bottom:22px!important;
+  padding:24px!important;
+  border-radius:28px!important;
+  border:1px solid rgba(113,18,42,.10)!important;
+  background:linear-gradient(180deg,rgba(255,255,255,.96),rgba(252,244,246,.93))!important;
+  backdrop-filter:blur(14px)!important;
+  box-shadow:0 24px 60px rgba(113,18,42,.16)!important;
+}
+.theme-about .about-photo-caption>span{
+  color:var(--brand-wine)!important;
+  font-size:2.1rem!important;
+}
+.theme-about .about-photo-caption>p{
+  color:#5f5756!important;
+  margin-top:10px!important;
+  font-size:1rem!important;
+  line-height:1.55!important;
+  font-weight:500!important;
+}
+.theme-about .about-photo-caption .credential-row{gap:12px!important;margin-top:18px!important}
+.theme-about .about-photo-caption .credential-row span{
+  background:rgba(252,231,219,.90)!important;
+  border:1px solid rgba(113,18,42,.14)!important;
+  color:var(--brand-wine)!important;
+  font-weight:700!important;
+}
 .theme-about .about-philosophy-card{background:radial-gradient(circle at 100% 0,rgba(202,146,102,.18),transparent 32%),linear-gradient(145deg,#fff,rgba(252,231,219,.44))}
 .theme-about .timeline-section{background:radial-gradient(circle at 88% 12%,rgba(202,146,102,.18),transparent 28%),var(--brand-ink);color:#fff}
 .theme-about .timeline-section .section-header h2,.theme-about .timeline-section .timeline-item h3{color:#fff}
@@ -91,10 +157,147 @@ body,.site-shell{background:#fff;color:var(--brand-ink)}
     background:linear-gradient(180deg,#fff 0%,#FCE7DB 100%);
   }
   .theme-gallery .gallery-hero{background:linear-gradient(150deg,#1D1D1B,#71122A)}
+  .theme-about .about-hero-portrait{min-height:560px!important}
+  .theme-about .about-doctor-cutout{right:-3%!important;height:96%!important}
 }
 @media(max-width:760px){
   .site-header{background:rgba(255,255,255,.97)}
   .theme-home .hero{background:linear-gradient(155deg,#71122A 0%,#8f314b 68%,#d9aab8 112%)}
   .theme-about .about-hero h1,.theme-services .services-hero h1,.theme-booking .booking-top h1{color:var(--brand-wine)}
   .theme-services .service-detail:nth-child(even){background:rgba(252,231,219,.24)}
+  .theme-about .about-hero-portrait{min-height:500px!important}
+  .theme-about .about-doctor-cutout{right:-5%!important;height:86%!important}
+  .theme-about .about-photo-caption{
+    left:16px!important;right:16px!important;bottom:10px!important;padding:18px!important;border-radius:22px!important;
+  }
+  .theme-about .about-photo-caption>span{font-size:1.7rem!important}
+  .theme-about .about-photo-caption>p{font-size:.92rem!important;line-height:1.5!important}
+}
+
+
+/* ==========================================================
+   BLOCO_30B_VISUAL
+   ========================================================== */
+
+.whatsapp-float-30b {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 9999;
+  width: 62px;
+  height: 62px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: #fff !important;
+  background: #71122A;
+  border: 1px solid rgba(255,255,255,.62);
+  box-shadow: 0 16px 42px rgba(62,12,28,.28);
+  text-decoration: none;
+  transition: transform .22s ease, box-shadow .22s ease;
+  animation: whatsappFloatPulse30b 2.2s ease-out infinite;
+}
+
+.whatsapp-float-30b::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  border: 2px solid rgba(113,18,42,.32);
+  animation: whatsappRing30b 2.2s ease-out infinite;
+  pointer-events: none;
+}
+
+.whatsapp-float-30b:hover {
+  transform: translateY(-4px) scale(1.05);
+  box-shadow: 0 20px 50px rgba(62,12,28,.36);
+}
+
+@keyframes whatsappRing30b {
+  0% { transform: scale(.92); opacity: .78; }
+  70%, 100% { transform: scale(1.55); opacity: 0; }
+}
+
+@keyframes whatsappFloatPulse30b {
+  0%, 100% { box-shadow: 0 16px 42px rgba(62,12,28,.28); }
+  50% { box-shadow: 0 18px 48px rgba(113,18,42,.42); }
+}
+
+.footer-brand-wordmark-30b {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: auto !important;
+  height: auto !important;
+  min-width: 0 !important;
+  padding: 0 !important;
+  margin: 0 0 24px !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.footer-brand-wordmark-30b strong {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: clamp(1.65rem, 2.2vw, 2.35rem);
+  line-height: 1;
+  font-weight: 600;
+  color: #fff;
+}
+
+.footer-brand-wordmark-30b span {
+  margin-top: 8px;
+  color: #CA9266;
+  font-size: .68rem;
+  font-weight: 800;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+}
+
+.site-footer .brand-lockup,
+.site-footer .footer-logo,
+.site-footer .footer-brand-mark,
+.site-footer .brand-mark {
+  width: auto !important;
+  height: auto !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+.site-footer img[src*="brand"],
+.site-footer img[src*="logo"] {
+  display: none !important;
+}
+
+@media (min-width: 981px) {
+  .theme-about .about-hero-grid {
+    grid-template-columns: minmax(0, .88fr) minmax(520px, 1.12fr);
+    gap: clamp(34px, 4vw, 72px);
+  }
+
+  .theme-about .about-hero-portrait {
+    min-height: 620px;
+    background-position: center 14%;
+  }
+}
+
+@media (max-width: 700px) {
+  .whatsapp-float-30b {
+    right: 16px;
+    bottom: 16px;
+    width: 56px;
+    height: 56px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .whatsapp-float-30b,
+  .whatsapp-float-30b::before {
+    animation: none;
+  }
 }

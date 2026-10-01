@@ -1,0 +1,1526 @@
+
+import fs from 'node:fs'
+import path from 'node:path'
+import { spawnSync } from 'node:child_process'
+
+const SITE = 'C:\\Projetos\\SITE-DRA-ANDRESSA'
+const SISTEMA = 'C:\\Projetos\\SISTEMA-DRA-ANDRESSA'
+const STAMP = new Date().toISOString().replace(/[-:TZ.]/g, '').slice(0, 14)
+const BACKUP = path.join('C:\\Projetos', `BACKUP_BLOCO_30B_${STAMP}`)
+
+const files = {
+  booking: path.join(SITE, 'src', 'pages', 'Booking.tsx'),
+  api: path.join(SITE, 'src', 'services', 'bookingApi.ts'),
+  whatsapp: path.join(SITE, 'src', 'components', 'WhatsAppButton.tsx'),
+  layout: path.join(SITE, 'src', 'components', 'Layout.tsx'),
+  css: path.join(SITE, 'src', 'styles', 'brand-refresh.css'),
+  edge: path.join(SISTEMA, 'supabase', 'functions', 'public-booking', 'index.ts'),
+}
+
+function fail(message) {
+  console.error('\nERRO:', message)
+  process.exit(1)
+}
+
+function ok(message) {
+  console.log('OK -', message)
+}
+
+for (const [name, file] of Object.entries(files)) {
+  if (!fs.existsSync(file)) fail(`arquivo obrigatório não encontrado (${name}): ${file}`)
+}
+
+function read(file) {
+  return fs.readFileSync(file, 'utf8').replace(/\r\n/g, '\n')
+}
+
+function write(file, content) {
+  fs.writeFileSync(file, content, 'utf8')
+}
+
+function backupFile(file, root, label) {
+  const rel = path.relative(root, file)
+  const dst = path.join(BACKUP, label, rel)
+  fs.mkdirSync(path.dirname(dst), { recursive: true })
+  fs.copyFileSync(file, dst)
+}
+
+for (const file of [files.booking, files.api, files.whatsapp, files.layout, files.css]) {
+  backupFile(file, SITE, 'site')
+}
+backupFile(files.edge, SISTEMA, 'sistema')
+
+console.log('============================================================')
+console.log(' BLOCO 30B - AUTOAGENDAMENTO SEGURO + AJUSTES VISUAIS')
+console.log('============================================================')
+console.log('Backup:', BACKUP)
+
+function findBlockEnd(src, openIndex) {
+  let depth = 0
+  let quote = null
+  let escaped = false
+  let lineComment = false
+  let blockComment = false
+
+  for (let i = openIndex; i < src.length; i += 1) {
+    const ch = src[i]
+    const next = src[i + 1]
+
+    if (lineComment) {
+      if (ch === '\n') lineComment = false
+      continue
+    }
+
+    if (blockComment) {
+      if (ch === '*' && next === '/') {
+        blockComment = false
+        i += 1
+      }
+      continue
+    }
+
+    if (quote) {
+      if (escaped) {
+        escaped = false
+        continue
+      }
+      if (ch === '\\') {
+        escaped = true
+        continue
+      }
+      if (ch === quote) quote = null
+      continue
+    }
+
+    if (ch === '/' && next === '/') {
+      lineComment = true
+      i += 1
+      continue
+    }
+
+    if (ch === '/' && next === '*') {
+      blockComment = true
+      i += 1
+      continue
+    }
+
+    if (ch === "'" || ch === '"' || ch === '`') {
+      quote = ch
+      continue
+    }
+
+    if (ch === '{') depth += 1
+
+    if (ch === '}') {
+      depth -= 1
+      if (depth === 0) return i + 1
+    }
+  }
+
+  return -1
+}
+
+function replaceNamedFunction(src, name, replacement) {
+  const re = new RegExp(`(?:export\\s+)?(?:async\\s+)?function\\s+${name}\\s*\\(`)
+  const match = re.exec(src)
+  if (!match) fail(`não encontrei a função ${name}`)
+
+  let paren = 0
+  let quote = null
+  let escaped = false
+  let closeParen = -1
+
+  const firstParen = src.indexOf('(', match.index)
+
+  for (let i = firstParen; i < src.length; i += 1) {
+    const ch = src[i]
+
+    if (quote) {
+      if (escaped) escaped = false
+      else if (ch === '\\') escaped = true
+      else if (ch === quote) quote = null
+      continue
+    }
+
+    if (ch === "'" || ch === '"' || ch === '`') {
+      quote = ch
+      continue
+    }
+
+    if (ch === '(') paren += 1
+    if (ch === ')') {
+      paren -= 1
+      if (paren === 0) {
+        closeParen = i
+        break
+      }
+    }
+  }
+
+  if (closeParen < 0) fail(`assinatura inválida da função ${name}`)
+  const open = src.indexOf('{', closeParen)
+  if (open < 0) fail(`corpo não encontrado da função ${name}`)
+  const end = findBlockEnd(src, open)
+  if (end < 0) fail(`fim da função ${name} não encontrado`)
+
+  return src.slice(0, match.index) + replacement.trimEnd() + src.slice(end)
+}
+
+function replaceIfAfterMarker(src, marker, replacement) {
+  const markerIndex = src.indexOf(marker)
+  if (markerIndex < 0) fail(`marcador não encontrado: ${marker}`)
+
+  const ifIndex = src.indexOf('if (', markerIndex)
+  if (ifIndex < 0) fail(`if não encontrado após ${marker}`)
+
+  const open = src.indexOf('{', ifIndex)
+  const end = findBlockEnd(src, open)
+  if (end < 0) fail(`fim do bloco não encontrado após ${marker}`)
+
+  return src.slice(0, markerIndex) + replacement.trimEnd() + src.slice(end)
+}
+
+function replaceActionBlock(src, action, replacement) {
+  const needle = `if (action === '${action}')`
+  const start = src.indexOf(needle)
+  if (start < 0) fail(`ação ${action} não encontrada`)
+  const open = src.indexOf('{', start)
+  const end = findBlockEnd(src, open)
+  if (end < 0) fail(`fim da ação ${action} não encontrado`)
+  return src.slice(0, start) + replacement.trimEnd() + src.slice(end)
+}
+
+function replaceFormBeforeMarker(src, headingNeedle, marker, replacement) {
+  const heading = src.indexOf(headingNeedle)
+  if (heading < 0) fail(`título não encontrado: ${headingNeedle}`)
+  const form = src.indexOf('<div className="form-grid two">', heading)
+  const end = src.indexOf(marker, form)
+  if (form < 0 || end < 0) fail(`formulário não encontrado em ${headingNeedle}`)
+  return src.slice(0, form) + replacement.trimEnd() + '\n\n                      ' + src.slice(end)
+}
+
+/* ============================================================
+   1. SITE - BOOKING.TSX
+   ============================================================ */
+
+let booking = read(files.booking)
+
+if (!booking.includes('BLOCO_30B_AUTOAGENDAMENTO_SEGURO')) {
+  const importEnd = booking.indexOf('\n', booking.indexOf("import { buildGoogleCalendarUrl"))
+  if (importEnd < 0) fail('ponto de marcador do Booking.tsx não encontrado')
+  booking =
+    booking.slice(0, importEnd + 1) +
+    '\n// BLOCO_30B_AUTOAGENDAMENTO_SEGURO\n' +
+    booking.slice(importEnd + 1)
+
+  const identityStart = booking.indexOf("  const [\n    existingCpf,")
+  const identityEnd = booking.indexOf("  const [\n    verifiedExisting,", identityStart)
+  if (identityStart < 0 || identityEnd < 0) fail('estado de identificação antigo não encontrado')
+
+  booking =
+    booking.slice(0, identityStart) +
+`  const [
+    existingPhone,
+    setExistingPhone,
+  ] =
+    useState('')
+
+  const [
+    existingBirthDate,
+    setExistingBirthDate,
+  ] =
+    useState('')
+
+  const [
+    existingEmail,
+    setExistingEmail,
+  ] =
+    useState('')
+
+` +
+    booking.slice(identityEnd)
+
+  booking = booking.replace(/\n\s*cpf:\s*'',/g, '')
+
+  const lookupStateStart = booking.indexOf('  const [bookingLookupCpf,')
+  const lookupStateEnd = booking.indexOf('  const [bookingLookupLoading,', lookupStateStart)
+  if (lookupStateStart < 0 || lookupStateEnd < 0) fail('estados da consulta antiga não encontrados')
+
+  booking =
+    booking.slice(0, lookupStateStart) +
+`  const [bookingLookupPhone, setBookingLookupPhone] = useState('')
+  const [bookingLookupProtocol, setBookingLookupProtocol] = useState('')
+` +
+    booking.slice(lookupStateEnd)
+
+  booking = replaceNamedFunction(
+    booking,
+    'findExisting',
+`  async function findExisting() {
+    setError('')
+    setIdentityMessage('')
+
+    const phone = existingPhone.replace(/\\D/g, '')
+    const birthDate = existingBirthDate.trim()
+    const email = existingEmail.trim().toLowerCase()
+
+    if (phone.length < 10 || !birthDate || !email || !email.includes('@')) {
+      setError(
+        'Informe telefone/WhatsApp, data de nascimento e e-mail para confirmar seu cadastro.',
+      )
+      return
+    }
+
+    setLoading(true)
+
+    try {
+      const result = await identifyPatient(
+        existingPhone,
+        birthDate,
+        email,
+      )
+
+      if (result.found && result.fullName) {
+        setVerifiedExisting(true)
+
+        setPatient({
+          fullName: result.fullName,
+          phone: existingPhone,
+          birthDate,
+          email,
+        })
+
+        setIdentityMessage(
+          result.message ||
+          'Cadastro localizado com sucesso.',
+        )
+
+        await loadCatalog()
+      } else {
+        setVerifiedExisting(false)
+
+        setError(
+          'Não foi possível confirmar seu cadastro. Confira as informações digitadas ou fale com a clínica.',
+        )
+      }
+    } catch {
+      setVerifiedExisting(false)
+      setError(
+        'Não foi possível confirmar seu cadastro. Confira as informações digitadas ou fale com a clínica.',
+      )
+    } finally {
+      setLoading(false)
+    }
+  }`,
+  )
+
+  booking = replaceNamedFunction(
+    booking,
+    'continueNewPatient',
+`  async function continueNewPatient() {
+    setError('')
+    setDuplicateWarning(false)
+
+    const phone = patient.phone.replace(/\\D/g, '')
+    const email = patient.email.trim().toLowerCase()
+
+    if (
+      !patient.fullName.trim() ||
+      phone.length < 10 ||
+      !patient.birthDate ||
+      !email ||
+      !email.includes('@')
+    ) {
+      setError(
+        'Informe nome completo, telefone/WhatsApp, data de nascimento e e-mail para continuar.',
+      )
+      return
+    }
+
+    setLoading(true)
+
+    try {
+      const check = await checkExistingPatient(
+        patient.phone,
+        patient.birthDate,
+        email,
+      )
+
+      if (check.exists) {
+        setDuplicateWarning(true)
+
+        setError(
+          'Já pode existir um cadastro associado às informações fornecidas. Para sua segurança, confirme seu cadastro ou fale com a clínica.',
+        )
+        return
+      }
+
+      setPatient({
+        ...patient,
+        email,
+      })
+
+      await loadCatalog()
+      setStep(2)
+    } catch {
+      setError(
+        'Não foi possível validar seus dados agora. Confira as informações ou fale com a clínica.',
+      )
+    } finally {
+      setLoading(false)
+    }
+  }`,
+  )
+
+  booking = replaceNamedFunction(
+    booking,
+    'lookupMyBookings',
+`  async function lookupMyBookings() {
+    setError('')
+    setBookingLookupMessage('')
+    setBookingLookupResults([])
+
+    const phone = bookingLookupPhone.replace(/\\D/g, '')
+    const protocol = bookingLookupProtocol.trim().toUpperCase()
+
+    if (phone.length < 10 || !protocol) {
+      setBookingLookupMessage(
+        'Informe o protocolo do agendamento e o telefone/WhatsApp utilizado no cadastro.',
+      )
+      return
+    }
+
+    setBookingLookupLoading(true)
+
+    try {
+      const response = await manageBooking({
+        phone,
+        protocol,
+        reference: protocol,
+      })
+
+      const list = bookingResultList(response)
+      setBookingLookupResults(list)
+
+      setBookingLookupMessage(
+        list.length
+          ? 'Agendamento localizado com segurança.'
+          : 'Não foi possível localizar o agendamento. Confira os dados ou fale com a clínica.',
+      )
+    } catch {
+      setBookingLookupMessage(
+        'Não foi possível localizar o agendamento. Confira os dados ou fale com a clínica.',
+      )
+    } finally {
+      setBookingLookupLoading(false)
+    }
+  }`,
+  )
+
+  booking = replaceNamedFunction(
+    booking,
+    'resetAll',
+`  function resetAll() {
+    setIdentityMode('choose')
+    setVerifiedExisting(false)
+    setExistingPhone('')
+    setExistingBirthDate('')
+    setExistingEmail('')
+    setIdentityMessage('')
+    setDuplicateWarning(false)
+
+    setPatient({
+      fullName: '',
+      phone: '',
+      birthDate: '',
+      email: '',
+    })
+
+    setStep(1)
+
+    setServices([])
+    setLocations([])
+    setProviders([])
+    setSlots([])
+
+    setServiceId('')
+    setLocationId('')
+    setProviderId('')
+    setDate('')
+    setSelectedSlotStart('')
+    setNotes('')
+
+    setError('')
+    setSuccess(null)
+  }`,
+  )
+
+  booking = booking.replace(
+    /\n\s*setBookingLookupCpf\(patient\.cpf\s*\|\|\s*''\)/g,
+    '',
+  )
+
+  const manageCpfField =
+    /<div className="manage-booking-field">\s*<label>CPF<\/label>[\s\S]*?bookingLookupCpf[\s\S]*?<\/div>\s*(?=<div className="manage-booking-field">)/
+  if (!manageCpfField.test(booking)) fail('campo CPF da consulta não encontrado')
+  booking = booking.replace(manageCpfField, '')
+
+  booking = booking.replace(
+    'Protocolo (se tiver)',
+    'Protocolo *',
+  )
+
+  const lookupMsgMarker = booking.indexOf('{bookingLookupMessage')
+  if (lookupMsgMarker < 0) fail('mensagem da consulta não encontrada')
+  const lookupSmallStart = booking.lastIndexOf('<small>', lookupMsgMarker)
+  const lookupSmallEnd = booking.indexOf('</small>', lookupSmallStart)
+  if (lookupSmallStart < 0 || lookupSmallEnd < 0 || lookupMsgMarker - lookupSmallStart > 500) {
+    fail('texto de segurança da consulta não encontrado')
+  }
+  booking =
+    booking.slice(0, lookupSmallStart) +
+`<small>
+              Para sua segurança, a consulta exige protocolo e telefone/WhatsApp.
+            </small>` +
+    booking.slice(lookupSmallEnd + '</small>'.length)
+
+  booking = booking.replace(
+    /utilizando\s+CPF\s+e\s+telefone\./,
+    'utilizando telefone, data de nascimento e e-mail.',
+  )
+
+  function replaceParagraphAfter(src, needle, html) {
+    const at = src.indexOf(needle)
+    if (at < 0) fail(`trecho não encontrado: ${needle}`)
+    const pStart = src.indexOf('<p>', at)
+    const pEnd = src.indexOf('</p>', pStart)
+    if (pStart < 0 || pEnd < 0 || pEnd - pStart > 600) {
+      fail(`parágrafo não encontrado após: ${needle}`)
+    }
+    return src.slice(0, pStart) + html + src.slice(pEnd + 4)
+  }
+
+  booking = replaceParagraphAfter(
+    booking,
+    'Localizar meu cadastro',
+`<p>
+                            Para sua segurança, informe
+                            telefone/WhatsApp, data de nascimento
+                            e e-mail cadastrados na clínica.
+                          </p>`,
+  )
+
+  booking = replaceParagraphAfter(
+    booking,
+    'Criar meu cadastro',
+`<p>
+                            Para evitar duplicidade, o sistema
+                            verificará somente seus dados básicos:
+                            telefone, nascimento e e-mail.
+                          </p>`,
+  )
+
+  booking = replaceFormBeforeMarker(
+    booking,
+    'Localizar meu cadastro',
+    '{identityMessage',
+`<div className="form-grid two">
+                        <label>
+                          Telefone / WhatsApp *
+                          <input
+                            value={existingPhone}
+                            onChange={(e) =>
+                              setExistingPhone(e.target.value)
+                            }
+                            placeholder="(41) 99999-9999"
+                            autoComplete="tel"
+                            inputMode="tel"
+                          />
+                        </label>
+
+                        <label>
+                          Data de nascimento *
+                          <input
+                            type="date"
+                            value={existingBirthDate}
+                            onChange={(e) =>
+                              setExistingBirthDate(e.target.value)
+                            }
+                            autoComplete="bday"
+                          />
+                        </label>
+
+                        <label className="full">
+                          E-mail *
+                          <input
+                            type="email"
+                            value={existingEmail}
+                            onChange={(e) =>
+                              setExistingEmail(e.target.value)
+                            }
+                            autoComplete="email"
+                            placeholder="seuemail@exemplo.com"
+                          />
+                        </label>
+                      </div>`,
+  )
+
+  booking = replaceFormBeforeMarker(
+    booking,
+    'Criar meu cadastro',
+    '{duplicateWarning',
+`<div className="form-grid two">
+                        <label>
+                          Nome completo *
+                          <input
+                            value={patient.fullName}
+                            onChange={(e) =>
+                              setPatient({
+                                ...patient,
+                                fullName: e.target.value,
+                              })
+                            }
+                            autoComplete="name"
+                          />
+                        </label>
+
+                        <label>
+                          Telefone / WhatsApp *
+                          <input
+                            value={patient.phone}
+                            onChange={(e) =>
+                              setPatient({
+                                ...patient,
+                                phone: e.target.value,
+                              })
+                            }
+                            autoComplete="tel"
+                            inputMode="tel"
+                            placeholder="(41) 99999-9999"
+                          />
+                        </label>
+
+                        <label>
+                          Data de nascimento *
+                          <input
+                            type="date"
+                            value={patient.birthDate}
+                            onChange={(e) =>
+                              setPatient({
+                                ...patient,
+                                birthDate: e.target.value,
+                              })
+                            }
+                            autoComplete="bday"
+                          />
+                        </label>
+
+                        <label>
+                          E-mail *
+                          <input
+                            type="email"
+                            value={patient.email}
+                            onChange={(e) =>
+                              setPatient({
+                                ...patient,
+                                email: e.target.value,
+                              })
+                            }
+                            autoComplete="email"
+                            placeholder="seuemail@exemplo.com"
+                          />
+                        </label>
+                      </div>`,
+  )
+
+  const remainingExistingCpf = booking.indexOf('setExistingCpf(')
+  if (remainingExistingCpf >= 0) {
+    const nextMode = booking.indexOf('setIdentityMode(', remainingExistingCpf)
+    if (nextMode < 0 || nextMode - remainingExistingCpf > 1000) {
+      fail('não consegui atualizar a transição de paciente duplicado')
+    }
+
+    booking =
+      booking.slice(0, remainingExistingCpf) +
+`setExistingPhone(
+                                patient.phone || '',
+                              )
+
+                              setExistingBirthDate(
+                                patient.birthDate || '',
+                              )
+
+                              setExistingEmail(
+                                patient.email || '',
+                              )
+
+                              ` +
+      booking.slice(nextMode)
+  }
+
+  booking = booking
+    .replace(/CPF\s+e\s+telefone/g, 'telefone, nascimento e e-mail')
+    .replace(/CPF\s+ou\s+protocolo/g, 'protocolo')
+
+  if (/\bbookingLookupCpf\b|\bexistingCpf\b|\bsetExistingCpf\b|\bpatient\.cpf\b/.test(booking)) {
+    fail('ainda existem referências de CPF no fluxo público do Booking.tsx')
+  }
+
+  write(files.booking, booking)
+  ok('Booking.tsx atualizado sem CPF')
+} else {
+  ok('Booking.tsx já contém o Bloco 30B')
+}
+
+/* ============================================================
+   2. SITE - BOOKING API
+   ============================================================ */
+
+let api = read(files.api)
+
+if (!api.includes('BLOCO_30B_API_SEGURA')) {
+  const oldIdentifyRangeMatch = /export\s+async\s+function\s+identifyPatient\s*\(/.exec(api)
+  if (!oldIdentifyRangeMatch) fail('identifyPatient não encontrada em bookingApi.ts')
+
+  const identifySlice = api.slice(oldIdentifyRangeMatch.index, oldIdentifyRangeMatch.index + 1200)
+  const invokeMatch = identifySlice.match(/await\s+([A-Za-z_$][A-Za-z0-9_$]*)\s*\(/)
+  if (!invokeMatch) fail('não consegui identificar o helper da API pública')
+  const invoke = invokeMatch[1]
+
+  api = api.replace(
+    /export\s+type\s+BookingPatient\s*=\s*\{([\s\S]*?)\}/,
+    (whole) => whole
+      .replace(/\n\s*cpf\??:\s*string[^\n]*/g, '')
+      .replace(/\n\s*cpf:\s*string[^\n]*/g, ''),
+  )
+
+  api = replaceNamedFunction(
+    api,
+    'identifyPatient',
+`export async function identifyPatient(
+  phone: string,
+  birthDate: string,
+  email: string,
+) {
+  const result = await ${invoke}({
+    action: 'identify',
+    phone,
+    birth_date: birthDate,
+    email,
+  }) as any
+
+  return {
+    found: Boolean(result?.found),
+    fullName: String(result?.full_name || ''),
+    message: String(result?.message || ''),
+  }
+}`,
+  )
+
+  api = replaceNamedFunction(
+    api,
+    'checkExistingPatient',
+`export async function checkExistingPatient(
+  phone: string,
+  birthDate: string,
+  email: string,
+) {
+  const result = await ${invoke}({
+    action: 'check_existing',
+    phone,
+    birth_date: birthDate,
+    email,
+  }) as any
+
+  return {
+    exists: Boolean(result?.exists),
+    message: String(result?.message || ''),
+  }
+}`,
+  )
+
+  api = replaceNamedFunction(
+    api,
+    'manageBooking',
+`export async function manageBooking(params: {
+  phone: string
+  protocol: string
+  reference?: string | null
+}) {
+  return await ${invoke}({
+    action: 'manage_booking',
+    phone: params.phone,
+    protocol: params.protocol,
+    reference: params.reference || params.protocol,
+  })
+}`,
+  )
+
+  api = api
+    .replace(/\n\s*cpf:\s*request\.patient\.cpf\s*\|\|\s*null,?/g, '')
+    .replace(/\n\s*cpf:\s*\n\s*request\.patient\.cpf\s*\|\|\s*null,?/g, '')
+
+  const firstImportEnd = api.indexOf('\n')
+  api = api.slice(0, firstImportEnd + 1) +
+    '// BLOCO_30B_API_SEGURA\n' +
+    api.slice(firstImportEnd + 1)
+
+  if (/\brequest\.patient\.cpf\b|\bbody\.cpf\b/.test(api)) {
+    fail('ainda existe envio de CPF em bookingApi.ts')
+  }
+
+  write(files.api, api)
+  ok('bookingApi.ts atualizado')
+} else {
+  ok('bookingApi.ts já contém o Bloco 30B')
+}
+
+/* ============================================================
+   3. SITE - BOTÃO FLUTUANTE DO WHATSAPP
+   ============================================================ */
+
+let whatsappNumber = ''
+
+for (const file of [files.whatsapp, files.booking]) {
+  const content = read(file)
+  const patterns = [
+    /wa\.me\/(\d{10,15})/i,
+    /WHATSAPP_NUMBER\s*=\s*['"](\d{10,15})['"]/i,
+  ]
+
+  for (const pattern of patterns) {
+    const match = content.match(pattern)
+    if (match) {
+      whatsappNumber = match[1]
+      break
+    }
+  }
+
+  if (whatsappNumber) break
+}
+
+if (!whatsappNumber) fail('não consegui preservar o número atual do WhatsApp')
+
+write(
+  files.whatsapp,
+`import { MessageCircle } from 'lucide-react'
+
+const WHATSAPP_NUMBER = '${whatsappNumber}'
+const WHATSAPP_URL = \`https://wa.me/\${WHATSAPP_NUMBER}?text=\${encodeURIComponent(
+  'Olá! Vim pelo site da Dra. Andressa e gostaria de falar com a equipe.',
+)}\`
+
+export default function WhatsAppButton() {
+  return (
+    <a
+      href={WHATSAPP_URL}
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label="Falar com a Clínica Dra. Andressa no WhatsApp"
+      title="Falar no WhatsApp"
+      className="whatsapp-float-30b"
+      onClick={(event) => event.stopPropagation()}
+    >
+      <MessageCircle size={29} strokeWidth={2.1} />
+    </a>
+  )
+}
+`,
+)
+ok('botão flutuante reduzido para ícone pulsante')
+
+/* ============================================================
+   4. SITE - RODAPÉ SEM QUADRADO BRANCO
+   ============================================================ */
+
+let layout = read(files.layout)
+
+if (!layout.includes('footer-brand-wordmark-30b')) {
+  const footerStart = layout.indexOf('<footer')
+  const footerEnd = footerStart >= 0 ? layout.indexOf('</footer>', footerStart) : -1
+
+  if (footerStart >= 0 && footerEnd >= 0) {
+    let footer = layout.slice(footerStart, footerEnd + '</footer>'.length)
+
+    const wrapperPattern =
+      /<(div|a)([^>]*className=["'][^"']*(?:footer[^"']*(?:logo|brand)|(?:logo|brand)[^"']*footer)[^"']*["'][^>]*)>\s*<img\b[^>]*\/?>\s*<\/\1>/i
+
+    const wordmark =
+`<div className="footer-brand-wordmark-30b" aria-label="Dra. Andressa Dallarmi">
+              <strong>Dra. Andressa Dallarmi</strong>
+              <span>Cirurgia Geral &amp; Estética</span>
+            </div>`
+
+    if (wrapperPattern.test(footer)) {
+      footer = footer.replace(wrapperPattern, wordmark)
+    } else if (/<img\b[^>]*\/?>/i.test(footer)) {
+      footer = footer.replace(/<img\b[^>]*\/?>/i, wordmark)
+    } else {
+      const openEnd = footer.indexOf('>') + 1
+      footer = footer.slice(0, openEnd) + '\n' + wordmark + footer.slice(openEnd)
+    }
+
+    layout =
+      layout.slice(0, footerStart) +
+      footer +
+      layout.slice(footerEnd + '</footer>'.length)
+
+    write(files.layout, layout)
+    ok('rodapé corrigido')
+  } else {
+    console.warn('AVISO - footer não localizado; o CSS ocultará imagens inválidas do rodapé.')
+  }
+} else {
+  ok('rodapé já contém wordmark textual')
+}
+
+/* ============================================================
+   5. SITE - CSS VISUAL
+   ============================================================ */
+
+let css = read(files.css)
+
+if (!css.includes('BLOCO_30B_VISUAL')) {
+  css += `
+
+/* ==========================================================
+   BLOCO_30B_VISUAL
+   ========================================================== */
+
+.whatsapp-float-30b {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 9999;
+  width: 62px;
+  height: 62px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: #fff !important;
+  background: #71122A;
+  border: 1px solid rgba(255,255,255,.62);
+  box-shadow: 0 16px 42px rgba(62,12,28,.28);
+  text-decoration: none;
+  transition: transform .22s ease, box-shadow .22s ease;
+  animation: whatsappFloatPulse30b 2.2s ease-out infinite;
+}
+
+.whatsapp-float-30b::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  border: 2px solid rgba(113,18,42,.32);
+  animation: whatsappRing30b 2.2s ease-out infinite;
+  pointer-events: none;
+}
+
+.whatsapp-float-30b:hover {
+  transform: translateY(-4px) scale(1.05);
+  box-shadow: 0 20px 50px rgba(62,12,28,.36);
+}
+
+@keyframes whatsappRing30b {
+  0% { transform: scale(.92); opacity: .78; }
+  70%, 100% { transform: scale(1.55); opacity: 0; }
+}
+
+@keyframes whatsappFloatPulse30b {
+  0%, 100% { box-shadow: 0 16px 42px rgba(62,12,28,.28); }
+  50% { box-shadow: 0 18px 48px rgba(113,18,42,.42); }
+}
+
+.footer-brand-wordmark-30b {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: auto !important;
+  height: auto !important;
+  min-width: 0 !important;
+  padding: 0 !important;
+  margin: 0 0 24px !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.footer-brand-wordmark-30b strong {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: clamp(1.65rem, 2.2vw, 2.35rem);
+  line-height: 1;
+  font-weight: 600;
+  color: #fff;
+}
+
+.footer-brand-wordmark-30b span {
+  margin-top: 8px;
+  color: #CA9266;
+  font-size: .68rem;
+  font-weight: 800;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+}
+
+.site-footer .brand-lockup,
+.site-footer .footer-logo,
+.site-footer .footer-brand-mark,
+.site-footer .brand-mark {
+  width: auto !important;
+  height: auto !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+.site-footer img[src*="brand"],
+.site-footer img[src*="logo"] {
+  display: none !important;
+}
+
+@media (min-width: 981px) {
+  .theme-about .about-hero-grid {
+    grid-template-columns: minmax(0, .88fr) minmax(520px, 1.12fr);
+    gap: clamp(34px, 4vw, 72px);
+  }
+
+  .theme-about .about-hero-portrait {
+    min-height: 620px;
+    background-position: center 14%;
+  }
+}
+
+@media (max-width: 700px) {
+  .whatsapp-float-30b {
+    right: 16px;
+    bottom: 16px;
+    width: 56px;
+    height: 56px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .whatsapp-float-30b,
+  .whatsapp-float-30b::before {
+    animation: none;
+  }
+}
+`
+
+  write(files.css, css)
+  ok('ajustes visuais adicionados')
+} else {
+  ok('CSS do Bloco 30B já instalado')
+}
+
+/* ============================================================
+   6. SISTEMA - EDGE FUNCTION SEGURA
+   ============================================================ */
+
+let edge = read(files.edge)
+
+if (!edge.includes('BLOCO_30B_SECURITY_GATE')) {
+  const actionLine = "    const action = String(body.action || '')\n"
+  if (!edge.includes(actionLine)) fail('ponto para security gate não encontrado')
+
+  const helper = `
+    // BLOCO_30B_SECURITY_GATE
+    const clientIp =
+      req.headers.get('cf-connecting-ip') ||
+      req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+      'unknown'
+
+    async function allowAttempt(
+      kind: string,
+      maxAttempts: number,
+      windowMinutes: number,
+    ) {
+      const fingerprintHash = await sha256(\`\${kind}:\${clientIp}\`)
+      const since = new Date(
+        Date.now() - windowMinutes * 60 * 1000,
+      ).toISOString()
+
+      const { count, error: countError } = await admin
+        .from('public_booking_security_attempts')
+        .select('id', { count: 'exact', head: true })
+        .eq('action', kind)
+        .eq('fingerprint_hash', fingerprintHash)
+        .gte('created_at', since)
+
+      if (countError) throw countError
+      if ((count || 0) >= maxAttempts) return false
+
+      const { error: insertError } = await admin
+        .from('public_booking_security_attempts')
+        .insert({
+          action: kind,
+          fingerprint_hash: fingerprintHash,
+        })
+
+      if (insertError) throw insertError
+      return true
+    }
+
+`
+
+  edge = edge.replace(actionLine, actionLine + helper)
+}
+
+edge = replaceActionBlock(
+  edge,
+  'create',
+`if (action === 'create') {
+      if (!(await allowAttempt('create', 6, 15))) {
+        return json(
+          { error: 'Muitas tentativas. Aguarde alguns minutos e tente novamente.' },
+          429,
+        )
+      }
+
+      const phone = String(body.phone || '').replace(/\\D/g, '')
+      const fullName = String(body.full_name || '').trim()
+      const birthDate = String(body.birth_date || '').trim()
+      const email = String(body.email || '').trim().toLowerCase()
+
+      if (
+        fullName.length < 3 ||
+        phone.length < 10 ||
+        !/^\\d{4}-\\d{2}-\\d{2}$/.test(birthDate) ||
+        !email ||
+        !email.includes('@')
+      ) {
+        return json(
+          { error: 'Confira nome, telefone, data de nascimento e e-mail.' },
+          400,
+        )
+      }
+
+      const rawToken = makeToken()
+      const tokenHash = await sha256(rawToken)
+
+      const { data, error } = await admin.rpc('create_public_booking_internal', {
+        p_full_name: fullName,
+        p_phone: phone,
+        p_birth_date: birthDate,
+        p_email: email,
+        p_service_id: body.service_id,
+        p_provider_id: body.provider_id,
+        p_location_id: body.location_id,
+        p_start_at: body.start_at,
+        p_patient_message: body.patient_message || null,
+        p_token_hash: tokenHash,
+      })
+
+      if (error) throw error
+      return json({ receipt: data, token: rawToken })
+    }`,
+)
+
+edge = replaceIfAfterMarker(
+  edge,
+  '// HOTFIX_LOOKUP_BOOKING_V1',
+`    // BLOCO_30B_LOOKUP_SEGURO
+    if (['manage_booking','lookup','lookup_booking','find_booking'].includes(action)) {
+      if (!(await allowAttempt('lookup', 8, 15))) {
+        return json(
+          { error: 'Muitas tentativas. Aguarde alguns minutos e tente novamente.' },
+          429,
+        )
+      }
+
+      const digits = (value: unknown) =>
+        String(value ?? '').replace(/\\D/g, '')
+
+      const phone = digits(body.phone)
+      const protocol = String(
+        body.protocol || body.reference || '',
+      ).trim().toUpperCase()
+
+      const generic =
+        'Não foi possível localizar o agendamento. Confira os dados ou fale com a clínica.'
+
+      if (
+        phone.length < 10 ||
+        !protocol ||
+        protocol.length > 64 ||
+        !/^[A-Z0-9-]+$/.test(protocol)
+      ) {
+        return json({ error: generic }, 400)
+      }
+
+      const { data: appointment, error: appointmentError } = await admin
+        .from('appointments')
+        .select(
+          'id,patient_id,provider_id,service_id,location_id,public_reference,status,start_at,end_at,appointment_type,source',
+        )
+        .eq('public_reference', protocol)
+        .maybeSingle()
+
+      if (appointmentError) throw appointmentError
+      if (!appointment) return json({ error: generic }, 404)
+
+      const { data: patient, error: patientError } = await admin
+        .from('patients')
+        .select('id,phone,whatsapp')
+        .eq('id', appointment.patient_id)
+        .maybeSingle()
+
+      if (patientError) throw patientError
+      if (!patient) return json({ error: generic }, 404)
+
+      const phones = [
+        digits(patient.phone),
+        digits(patient.whatsapp),
+      ].filter(Boolean)
+
+      if (!phones.includes(phone)) {
+        return json({ error: generic }, 404)
+      }
+
+      async function one(table: string, id: unknown) {
+        if (!id) return null
+
+        const { data, error } = await admin
+          .from(table)
+          .select('*')
+          .eq('id', String(id))
+          .maybeSingle()
+
+        if (error) throw error
+        return data as any
+      }
+
+      const [service, provider, location] = await Promise.all([
+        one('services', appointment.service_id),
+        one('profiles', appointment.provider_id),
+        one('clinic_locations', appointment.location_id),
+      ])
+
+      const serviceName =
+        (service as any)?.public_name ||
+        (service as any)?.display_name ||
+        (service as any)?.name ||
+        'Atendimento'
+
+      const providerName =
+        (provider as any)?.full_name ||
+        (provider as any)?.name ||
+        'Profissional'
+
+      const locationName =
+        (location as any)?.public_name ||
+        (location as any)?.display_name ||
+        (location as any)?.name ||
+        (location as any)?.address ||
+        'Clínica Dra. Andressa'
+
+      const receipt = {
+        id: appointment.id,
+        reference: appointment.public_reference,
+        protocol: appointment.public_reference,
+        status: appointment.status,
+        start_at: appointment.start_at,
+        end_at: appointment.end_at,
+        appointment_type: appointment.appointment_type,
+        service: serviceName,
+        service_name: serviceName,
+        provider: providerName,
+        provider_name: providerName,
+        location: locationName,
+        location_name: locationName,
+        duration_minutes:
+          Number((service as any)?.duration_minutes || 60),
+        confirmation_message:
+          'Agendamento localizado com segurança.',
+      }
+
+      return json({
+        ok: true,
+        receipt,
+        booking: receipt,
+        appointment: receipt,
+        bookings: [receipt],
+        data: receipt,
+      })
+    }`,
+)
+
+edge = replaceIfAfterMarker(
+  edge,
+  '// HOTFIX_PATIENT_IDENTITY_V1',
+`    // BLOCO_30B_PATIENT_IDENTITY
+    if (action === 'identify' || action === 'check_existing') {
+      const gateKind =
+        action === 'identify' ? 'identify' : 'check_existing'
+
+      const gateLimit =
+        action === 'identify' ? 8 : 12
+
+      if (!(await allowAttempt(gateKind, gateLimit, 15))) {
+        return json(
+          {
+            found: false,
+            exists: false,
+            message: 'Muitas tentativas. Aguarde alguns minutos e tente novamente.',
+          },
+          429,
+        )
+      }
+
+      const digits = (value: unknown) =>
+        String(value ?? '').replace(/\\D/g, '')
+
+      const phone = digits(body.phone)
+      const birthDate = String(body.birth_date || '').trim()
+      const email = String(body.email || '').trim().toLowerCase()
+
+      const generic =
+        'Não foi possível confirmar seu cadastro. Confira as informações ou fale com a clínica.'
+
+      if (
+        phone.length < 10 ||
+        !/^\\d{4}-\\d{2}-\\d{2}$/.test(birthDate) ||
+        !email ||
+        !email.includes('@')
+      ) {
+        if (action === 'identify') {
+          return json({ found: false, message: generic }, 400)
+        }
+
+        return json({ exists: false, message: generic }, 400)
+      }
+
+      const { data: rows, error } = await admin
+        .from('patients')
+        .select('id,full_name,birth_date,email,phone,whatsapp')
+        .limit(5000)
+
+      if (error) throw error
+
+      const patients = rows ?? []
+
+      const normalized = patients.map((patient: any) => ({
+        ...patient,
+        phones: [
+          digits(patient.phone),
+          digits(patient.whatsapp),
+        ].filter(Boolean),
+        emailNormalized:
+          String(patient.email || '').trim().toLowerCase(),
+      }))
+
+      if (action === 'identify') {
+        const matches = normalized.filter((patient: any) =>
+          patient.phones.includes(phone) &&
+          String(patient.birth_date || '') === birthDate &&
+          patient.emailNormalized === email
+        )
+
+        if (matches.length !== 1) {
+          return json({ found: false, message: generic })
+        }
+
+        return json({
+          found: true,
+          full_name: String(matches[0].full_name || '').trim(),
+          message: 'Cadastro localizado com sucesso.',
+        })
+      }
+
+      const exists = normalized.some((patient: any) => {
+        const phoneMatch = patient.phones.includes(phone)
+        const birthMatch =
+          String(patient.birth_date || '') === birthDate
+        const emailMatch =
+          patient.emailNormalized === email
+
+        return (
+          (phoneMatch && (birthMatch || emailMatch)) ||
+          (birthMatch && emailMatch)
+        )
+      })
+
+      return json({
+        exists,
+        message: exists
+          ? 'Já pode existir um cadastro associado às informações fornecidas. Para sua segurança, utilize a opção “Já tenho cadastro” ou fale com a clínica.'
+          : 'Dados disponíveis para novo pré-cadastro.',
+      })
+    }`,
+)
+
+if (/body\.cpf|\.select\([^)]*cpf|HOTFIX_SAVE_BOOKING_CPF_V1|HOTFIX_PATIENT_IDENTITY_V1|HOTFIX_LOOKUP_BOOKING_V1/.test(edge)) {
+  fail('a Edge Function ainda contém lógica pública antiga de CPF')
+}
+
+write(files.edge, edge)
+ok('Edge Function atualizada com protocolo + telefone e identificação sem CPF')
+
+/* ============================================================
+   7. MIGRATION DE RATE LIMIT
+   ============================================================ */
+
+const migrationName =
+  '20260903203000_bloco30b_seguranca_autoagendamento.sql'
+
+const migrationPath = path.join(
+  SISTEMA,
+  'supabase',
+  'migrations',
+  migrationName,
+)
+
+if (!fs.existsSync(migrationPath)) {
+  write(
+    migrationPath,
+`BEGIN;
+
+CREATE TABLE IF NOT EXISTS public.public_booking_security_attempts (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  action TEXT NOT NULL,
+  fingerprint_hash TEXT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  CHECK (BTRIM(action) <> ''),
+  CHECK (BTRIM(fingerprint_hash) <> '')
+);
+
+CREATE INDEX IF NOT EXISTS
+idx_public_booking_security_attempts_lookup
+ON public.public_booking_security_attempts (
+  action,
+  fingerprint_hash,
+  created_at DESC
+);
+
+ALTER TABLE public.public_booking_security_attempts
+ENABLE ROW LEVEL SECURITY;
+
+REVOKE ALL
+ON TABLE public.public_booking_security_attempts
+FROM anon, authenticated;
+
+COMMENT ON TABLE public.public_booking_security_attempts IS
+'Controle técnico de tentativas do autoagendamento público; não armazena CPF, nome, telefone ou e-mail em texto aberto.';
+
+COMMIT;
+`,
+  )
+  ok('migration de segurança criada')
+} else {
+  ok('migration de segurança já existe')
+}
+
+/* ============================================================
+   8. VALIDAÇÕES LOCAIS
+   ============================================================ */
+
+const bookingFinal = read(files.booking)
+const apiFinal = read(files.api)
+const edgeFinal = read(files.edge)
+
+if (/\bCPF\b|\bcpf\b/.test(bookingFinal)) {
+  fail('Booking.tsx ainda contém CPF')
+}
+
+if (/request\.patient\.cpf|body\.cpf/.test(apiFinal)) {
+  fail('bookingApi.ts ainda envia CPF')
+}
+
+if (/body\.cpf|HOTFIX_SAVE_BOOKING_CPF_V1/.test(edgeFinal)) {
+  fail('Edge Function ainda usa CPF público')
+}
+
+console.log('')
+console.log('============================================================')
+console.log(' VALIDANDO BUILD DO SITE')
+console.log('============================================================')
+
+function run(command, args, cwd) {
+  console.log(`\n> ${command} ${args.join(' ')}`)
+  const result = spawnSync(command, args, {
+    cwd,
+    stdio: 'inherit',
+    shell: process.platform === 'win32',
+  })
+  return result.status ?? 1
+}
+
+const npm = process.platform === 'win32' ? 'npm.cmd' : 'npm'
+const npx = process.platform === 'win32' ? 'npx.cmd' : 'npx'
+
+if (run(npm, ['run', 'build'], SITE) !== 0) {
+  console.error('')
+  console.error('BUILD FALHOU.')
+  console.error('Nenhuma alteração remota foi feita.')
+  console.error('Backup preservado em:', BACKUP)
+  process.exit(1)
+}
+
+ok('build do site aprovado')
+
+console.log('')
+console.log('============================================================')
+console.log(' ATUALIZANDO BANCO')
+console.log('============================================================')
+
+if (run(npx, ['supabase', 'db', 'push'], SISTEMA) !== 0) {
+  fail('Supabase db push falhou. O site NÃO foi publicado.')
+}
+
+ok('banco atualizado')
+
+console.log('')
+console.log('============================================================')
+console.log(' PUBLICANDO EDGE FUNCTION')
+console.log('============================================================')
+
+if (
+  run(
+    npx,
+    ['supabase', 'functions', 'deploy', 'public-booking', '--no-verify-jwt'],
+    SISTEMA,
+  ) !== 0
+) {
+  fail('deploy da Edge Function falhou. O site NÃO foi publicado.')
+}
+
+ok('Edge Function publicada')
+
+console.log('')
+console.log('============================================================')
+console.log(' PUBLICANDO SITE NO CLOUDFLARE')
+console.log('============================================================')
+
+if (run(npm, ['run', 'deploy'], SITE) !== 0) {
+  fail('deploy do site falhou. A Edge Function já foi atualizada; não apague os arquivos locais.')
+}
+
+ok('site publicado')
+
+console.log('')
+console.log('============================================================')
+console.log(' BLOCO 30B CONCLUIDO')
+console.log('============================================================')
+console.log('')
+console.log('Autoagendamento público:')
+console.log('- CPF removido')
+console.log('- novo paciente: nome + nascimento + WhatsApp + e-mail')
+console.log('- paciente existente: WhatsApp + nascimento + e-mail')
+console.log('- consulta: protocolo + WhatsApp')
+console.log('- respostas genéricas para evitar exposição de cadastro')
+console.log('- limite de tentativas no backend')
+console.log('')
+console.log('Visual:')
+console.log('- botão flutuante virou ícone pulsante')
+console.log('- foto da Dra. Andressa maior na página Sobre')
+console.log('- rodapé sem quadrado branco de logo')
+console.log('')
+console.log('Backup:', BACKUP)
+console.log('')
+console.log('OBS.: Este bloco publicou diretamente e NÃO alterou o índice do Git.')
+console.log('Depois dos testes, faremos o commit controlado dos arquivos corretos.')
+console.log('============================================================')

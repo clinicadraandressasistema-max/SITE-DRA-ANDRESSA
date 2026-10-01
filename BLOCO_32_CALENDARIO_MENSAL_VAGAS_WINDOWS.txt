@@ -1,0 +1,1303 @@
+import fs from 'node:fs'
+import path from 'node:path'
+import { spawnSync } from 'node:child_process'
+
+const SITE = 'C:\\Projetos\\SITE-DRA-ANDRESSA'
+const SYSTEM = 'C:\\Projetos\\SISTEMA-DRA-ANDRESSA'
+
+const bookingPath = path.join(SITE, 'src', 'pages', 'Booking.tsx')
+const apiPath = path.join(SITE, 'src', 'services', 'bookingApi.ts')
+const edgePath = path.join(SYSTEM, 'supabase', 'functions', 'public-booking', 'index.ts')
+const migrationPath = path.join(
+  SYSTEM,
+  'supabase',
+  'migrations',
+  '20260903231000_bloco32_calendario_vagas.sql',
+)
+
+function die(message) {
+  console.error('')
+  console.error('ERRO:', message)
+  process.exit(1)
+}
+
+for (const file of [bookingPath, apiPath, edgePath]) {
+  if (!fs.existsSync(file)) die(`Arquivo nao encontrado: ${file}`)
+}
+
+const stamp = new Date().toISOString().replace(/[-:T.Z]/g, '').slice(0, 14)
+const backup = path.join('C:\\Projetos', `BACKUP_BLOCO32_${stamp}`)
+fs.mkdirSync(backup, { recursive: true })
+
+fs.copyFileSync(bookingPath, path.join(backup, 'Booking.tsx'))
+fs.copyFileSync(apiPath, path.join(backup, 'bookingApi.ts'))
+fs.copyFileSync(edgePath, path.join(backup, 'public-booking-index.ts'))
+
+console.log('============================================================')
+console.log(' BLOCO 32 - CALENDARIO MENSAL DE VAGAS')
+console.log('============================================================')
+console.log('Backup:', backup)
+console.log('')
+
+function read(file) {
+  return fs.readFileSync(file, 'utf8').replace(/\r\n/g, '\n')
+}
+
+function write(file, content) {
+  fs.writeFileSync(file, content, 'utf8')
+}
+
+function restoreSite() {
+  fs.copyFileSync(path.join(backup, 'Booking.tsx'), bookingPath)
+  fs.copyFileSync(path.join(backup, 'bookingApi.ts'), apiPath)
+  fs.copyFileSync(path.join(backup, 'public-booking-index.ts'), edgePath)
+}
+
+let api = read(apiPath)
+
+if (!api.includes('fetchBookingMonthSummary')) {
+  const anchor = '\nexport async function createBooking('
+  const pos = api.indexOf(anchor)
+  if (pos < 0) {
+    restoreSite()
+    die('Nao encontrei createBooking em bookingApi.ts.')
+  }
+
+  const block = `
+
+export async function fetchBookingMonthSummary(input: {
+  serviceId: string
+  locationId: string
+  providerId?: string
+  from: string
+  to: string
+}) {
+  return callPublicBooking({
+    action: 'month_summary',
+    service_id: input.serviceId,
+    location_id: input.locationId,
+    provider_id: input.providerId || null,
+    from: input.from,
+    to: input.to,
+  })
+}
+`
+  api = api.slice(0, pos) + block + api.slice(pos)
+  write(apiPath, api)
+  console.log('OK - bookingApi.ts recebeu month_summary.')
+} else {
+  console.log('OK - bookingApi.ts ja contem month_summary.')
+}
+
+let edge = read(edgePath)
+
+if (!edge.includes("action === 'month_summary'")) {
+  const slotsRegex = /(\n\s*if \(action === 'slots'\) \{[\s\S]*?return json\(\{ slots: data \?\? \[\] \}\)\s*\n\s*\})/
+  const match = edge.match(slotsRegex)
+
+  if (!match || match.index == null) {
+    restoreSite()
+    die('Nao encontrei o bloco action slots na Edge Function.')
+  }
+
+  const block = `
+
+    // BLOCO_32_CALENDARIO_VAGAS
+    if (action === 'month_summary') {
+      const { data, error } = await admin.rpc(
+        'get_public_booking_month_summary_internal',
+        {
+          p_service_id: body.service_id,
+          p_location_id: body.location_id,
+          p_from: body.from,
+          p_to: body.to,
+          p_provider_id: body.provider_id || null,
+        },
+      )
+
+      if (error) throw error
+
+      const { data: settings } = await admin
+        .from('public_booking_settings')
+        .select('maximum_advance_days')
+        .eq('settings_key', 'main')
+        .maybeSingle()
+
+      return json({
+        days: data ?? [],
+        max_advance_days:
+          Number(settings?.maximum_advance_days || 180),
+      })
+    }`
+
+  const insertAt = match.index + match[0].length
+  edge = edge.slice(0, insertAt) + block + edge.slice(insertAt)
+  write(edgePath, edge)
+  console.log('OK - Edge Function recebeu month_summary.')
+} else {
+  console.log('OK - Edge Function ja contem month_summary.')
+}
+
+if (!fs.existsSync(migrationPath)) {
+  const sql = `BEGIN;
+
+-- ============================================================
+-- BLOCO 32 - RESUMO MENSAL DE VAGAS PARA O AUTOAGENDAMENTO
+-- ============================================================
+
+CREATE OR REPLACE FUNCTION
+public.get_public_booking_month_summary_internal(
+  p_service_id UUID,
+  p_location_id UUID,
+  p_from DATE,
+  p_to DATE,
+  p_provider_id UUID DEFAULT NULL
+)
+RETURNS TABLE (
+  calendar_date DATE,
+  configured_count BIGINT,
+  available_count BIGINT,
+  booked_count BIGINT,
+  status TEXT
+)
+LANGUAGE SQL
+STABLE
+SECURITY INVOKER
+SET search_path = ''
+AS $$
+  WITH rule_base AS (
+    SELECT
+      ar.provider_id,
+      ar.location_id,
+      ar.weekday,
+      ar.start_time,
+      ar.end_time,
+      ar.slot_duration_minutes,
+      ar.timezone,
+      ar.valid_from,
+      ar.valid_until,
+      public.public_booking_duration_minutes(
+        ar.provider_id,
+        ar.location_id,
+        p_service_id
+      ) AS duration_minutes
+    FROM public.public_booking_availability_rules ar
+    JOIN public.public_booking_providers pbp
+      ON pbp.provider_id = ar.provider_id
+     AND pbp.active = TRUE
+    JOIN public.profiles pr
+      ON pr.id = ar.provider_id
+     AND pr.active = TRUE
+    JOIN public.clinic_locations l
+      ON l.id = ar.location_id
+     AND l.active = TRUE
+     AND l.public_booking_enabled = TRUE
+    JOIN public.provider_locations pl
+      ON pl.provider_id = ar.provider_id
+     AND pl.location_id = ar.location_id
+     AND pl.active = TRUE
+     AND pl.public_booking_enabled = TRUE
+    JOIN public.provider_services ps
+      ON ps.provider_id = ar.provider_id
+     AND ps.service_id = p_service_id
+     AND ps.active = TRUE
+     AND ps.public_booking_enabled = TRUE
+    JOIN public.location_services ls
+      ON ls.location_id = ar.location_id
+     AND ls.service_id = p_service_id
+     AND ls.active = TRUE
+     AND ls.public_booking_enabled = TRUE
+    JOIN public.public_booking_services pbs
+      ON pbs.service_id = p_service_id
+     AND pbs.active = TRUE
+    JOIN public.services srv
+      ON srv.id = p_service_id
+     AND srv.active = TRUE
+    WHERE ar.active = TRUE
+      AND ar.location_id = p_location_id
+      AND (
+        ar.service_id IS NULL
+        OR ar.service_id = p_service_id
+      )
+      AND (
+        p_provider_id IS NULL
+        OR ar.provider_id = p_provider_id
+      )
+  ),
+  calendar_days AS (
+    SELECT gs::DATE AS calendar_date
+    FROM GENERATE_SERIES(
+      p_from::TIMESTAMP,
+      p_to::TIMESTAMP,
+      INTERVAL '1 day'
+    ) gs
+    WHERE p_from IS NOT NULL
+      AND p_to IS NOT NULL
+      AND p_to >= p_from
+      AND p_to <= p_from + 31
+  ),
+  raw_slots AS (
+    SELECT DISTINCT
+      d.calendar_date,
+      rb.provider_id,
+      rb.location_id,
+      p_service_id AS service_id,
+      slot_start,
+      slot_start
+        + MAKE_INTERVAL(mins => rb.duration_minutes) AS slot_end
+    FROM rule_base rb
+    JOIN calendar_days d
+      ON EXTRACT(DOW FROM d.calendar_date)::SMALLINT = rb.weekday
+     AND (
+       rb.valid_from IS NULL
+       OR d.calendar_date >= rb.valid_from
+     )
+     AND (
+       rb.valid_until IS NULL
+       OR d.calendar_date <= rb.valid_until
+     )
+    CROSS JOIN LATERAL GENERATE_SERIES(
+      (
+        d.calendar_date + rb.start_time
+      ) AT TIME ZONE rb.timezone,
+      (
+        (
+          d.calendar_date + rb.end_time
+        ) AT TIME ZONE rb.timezone
+      ) - MAKE_INTERVAL(mins => rb.duration_minutes),
+      MAKE_INTERVAL(mins => rb.slot_duration_minutes)
+    ) AS gs(slot_start)
+    WHERE rb.duration_minutes IS NOT NULL
+  ),
+  classified AS (
+    SELECT
+      rs.*,
+      public.public_booking_slot_is_available(
+        rs.provider_id,
+        rs.location_id,
+        rs.service_id,
+        rs.slot_start,
+        NULL
+      ) AS is_available,
+      EXISTS (
+        SELECT 1
+        FROM public.appointments a
+        WHERE a.provider_id = rs.provider_id
+          AND a.status NOT IN (
+            'cancelado',
+            'remarcado',
+            'faltou'
+          )
+          AND rs.slot_start <
+            COALESCE(
+              a.end_at,
+              a.start_at + INTERVAL '30 minutes'
+            )
+          AND rs.slot_end > a.start_at
+      ) AS is_booked
+    FROM raw_slots rs
+  ),
+  stats AS (
+    SELECT
+      d.calendar_date,
+      COUNT(c.slot_start)::BIGINT AS configured_count,
+      COUNT(c.slot_start)
+        FILTER (WHERE c.is_available = TRUE)::BIGINT
+        AS available_count,
+      COUNT(c.slot_start)
+        FILTER (WHERE c.is_booked = TRUE)::BIGINT
+        AS booked_count
+    FROM calendar_days d
+    LEFT JOIN classified c
+      ON c.calendar_date = d.calendar_date
+    GROUP BY d.calendar_date
+  )
+  SELECT
+    s.calendar_date,
+    s.configured_count,
+    s.available_count,
+    s.booked_count,
+    CASE
+      WHEN s.available_count > 0
+        THEN 'available'
+      WHEN s.configured_count > 0
+       AND s.available_count = 0
+       AND s.booked_count > 0
+        THEN 'sold_out'
+      ELSE 'unavailable'
+    END::TEXT AS status
+  FROM stats s
+  ORDER BY s.calendar_date;
+$$;
+
+REVOKE ALL
+ON FUNCTION public.get_public_booking_month_summary_internal(
+  UUID,
+  UUID,
+  DATE,
+  DATE,
+  UUID
+)
+FROM PUBLIC;
+
+REVOKE ALL
+ON FUNCTION public.get_public_booking_month_summary_internal(
+  UUID,
+  UUID,
+  DATE,
+  DATE,
+  UUID
+)
+FROM anon;
+
+GRANT EXECUTE
+ON FUNCTION public.get_public_booking_month_summary_internal(
+  UUID,
+  UUID,
+  DATE,
+  DATE,
+  UUID
+)
+TO service_role;
+
+COMMENT ON FUNCTION
+public.get_public_booking_month_summary_internal(
+  UUID,
+  UUID,
+  DATE,
+  DATE,
+  UUID
+)
+IS
+'Resumo mensal seguro: vagas configuradas, livres e esgotadas para o calendario publico.';
+
+COMMIT;
+`
+  write(migrationPath, sql)
+  console.log('OK - Migration do calendario mensal criada.')
+} else {
+  console.log('OK - Migration do Bloco 32 ja existe.')
+}
+
+let booking = read(bookingPath)
+
+if (!booking.includes('fetchBookingMonthSummary,')) {
+  const rx = /(\n\s*fetchBookingSlots,\s*\n)/
+  if (!rx.test(booking)) {
+    restoreSite()
+    die('Nao encontrei fetchBookingSlots no import de Booking.tsx.')
+  }
+  booking = booking.replace(rx, '$1  fetchBookingMonthSummary,\n')
+}
+
+if (!booking.includes('function buildBookingCalendarMonth')) {
+  const anchor = '\nfunction whatsappHelp()'
+  const pos = booking.indexOf(anchor)
+  if (pos < 0) {
+    restoreSite()
+    die('Nao encontrei whatsappHelp em Booking.tsx.')
+  }
+
+  const helpers = `
+
+function shiftBookingMonth(
+  value: string,
+  delta: number,
+) {
+  const [year, month] =
+    value.split('-').map(Number)
+
+  const date =
+    new Date(year, month - 1 + delta, 1)
+
+  return [
+    date.getFullYear(),
+    String(date.getMonth() + 1).padStart(2, '0'),
+  ].join('-')
+}
+
+function bookingMonthBounds(value: string) {
+  const [year, month] =
+    value.split('-').map(Number)
+
+  const lastDay =
+    new Date(year, month, 0).getDate()
+
+  return {
+    from:
+      value + '-01',
+    to:
+      value +
+      '-' +
+      String(lastDay).padStart(2, '0'),
+  }
+}
+
+function buildBookingCalendarMonth(value: string) {
+  const [year, month] =
+    value.split('-').map(Number)
+
+  const first =
+    new Date(year, month - 1, 1)
+
+  const count =
+    new Date(year, month, 0).getDate()
+
+  const cells: Array<string | null> =
+    Array.from(
+      { length: first.getDay() },
+      () => null,
+    )
+
+  for (let day = 1; day <= count; day += 1) {
+    cells.push(
+      value +
+        '-' +
+        String(day).padStart(2, '0'),
+    )
+  }
+
+  return cells
+}
+
+function bookingMonthLabel(value: string) {
+  const [year, month] =
+    value.split('-').map(Number)
+
+  const label =
+    new Intl.DateTimeFormat(
+      'pt-BR',
+      {
+        month: 'long',
+        year: 'numeric',
+        timeZone: 'America/Sao_Paulo',
+      },
+    ).format(
+      new Date(year, month - 1, 1),
+    )
+
+  return (
+    label.charAt(0).toUpperCase() +
+    label.slice(1)
+  )
+}
+
+function addBookingDays(
+  value: string,
+  days: number,
+) {
+  const [year, month, day] =
+    value.split('-').map(Number)
+
+  const date =
+    new Date(year, month - 1, day)
+
+  date.setDate(
+    date.getDate() + days,
+  )
+
+  return [
+    date.getFullYear(),
+    String(date.getMonth() + 1).padStart(2, '0'),
+    String(date.getDate()).padStart(2, '0'),
+  ].join('-')
+}
+`
+  booking = booking.slice(0, pos) + helpers + booking.slice(pos)
+}
+
+if (!booking.includes('const [monthSummary,')) {
+  const anchor = `  const [
+    serviceId,`
+
+  const pos = booking.indexOf(anchor)
+  if (pos < 0) {
+    restoreSite()
+    die('Nao encontrei o estado serviceId em Booking.tsx.')
+  }
+
+  const states = `  const [
+    monthSummary,
+    setMonthSummary,
+  ] =
+    useState<AnyRecord[]>([])
+
+  const [
+    monthLoading,
+    setMonthLoading,
+  ] =
+    useState(false)
+
+  const [
+    calendarMonth,
+    setCalendarMonth,
+  ] =
+    useState(
+      () => today().slice(0, 7),
+    )
+
+  const [
+    maxAdvanceDays,
+    setMaxAdvanceDays,
+  ] =
+    useState(180)
+
+`
+  booking = booking.slice(0, pos) + states + booking.slice(pos)
+}
+
+if (!booking.includes('const monthSummaryMap =')) {
+  const anchor = `  useEffect(() => {
+    if (!success) return`
+
+  const pos = booking.indexOf(anchor)
+  if (pos < 0) {
+    restoreSite()
+    die('Nao encontrei o useEffect de success em Booking.tsx.')
+  }
+
+  const derived = `  const monthSummaryMap =
+    useMemo(
+      () => {
+        const map =
+          new Map<string, AnyRecord>()
+
+        monthSummary.forEach(
+          (item) => {
+            const key =
+              text(
+                item,
+                ['calendar_date', 'date'],
+              ).slice(0, 10)
+
+            if (key) {
+              map.set(key, item)
+            }
+          },
+        )
+
+        return map
+      },
+      [monthSummary],
+    )
+
+  const bookingCalendarDays =
+    useMemo(
+      () =>
+        buildBookingCalendarMonth(
+          calendarMonth,
+        ),
+      [calendarMonth],
+    )
+
+  const lastAllowedBookingDate =
+    useMemo(
+      () =>
+        addBookingDays(
+          today(),
+          maxAdvanceDays,
+        ),
+      [maxAdvanceDays],
+    )
+
+  const previousBookingMonthDisabled =
+    calendarMonth <=
+    today().slice(0, 7)
+
+  const nextBookingMonth =
+    shiftBookingMonth(
+      calendarMonth,
+      1,
+    )
+
+  const nextBookingMonthDisabled =
+    bookingMonthBounds(
+      nextBookingMonth,
+    ).from >
+    lastAllowedBookingDate
+
+`
+  booking = booking.slice(0, pos) + derived + booking.slice(pos)
+}
+
+if (!booking.includes('void loadMonthSummary()')) {
+  const anchor = `  async function loadCatalog() {`
+  const pos = booking.indexOf(anchor)
+  if (pos < 0) {
+    restoreSite()
+    die('Nao encontrei loadCatalog em Booking.tsx.')
+  }
+
+  const effect = `  useEffect(() => {
+    if (
+      step !== 4 ||
+      !serviceId ||
+      !locationId ||
+      !providerId
+    ) {
+      return
+    }
+
+    void loadMonthSummary()
+  }, [
+    step,
+    serviceId,
+    locationId,
+    providerId,
+    calendarMonth,
+  ])
+
+`
+  booking = booking.slice(0, pos) + effect + booking.slice(pos)
+}
+
+if (!booking.includes('async function loadMonthSummary()')) {
+  const anchor = `  async function loadSlots() {`
+  const pos = booking.indexOf(anchor)
+  if (pos < 0) {
+    restoreSite()
+    die('Nao encontrei loadSlots em Booking.tsx.')
+  }
+
+  const functionBlock = `  async function loadMonthSummary() {
+    setMonthLoading(true)
+    setError('')
+
+    try {
+      const range =
+        bookingMonthBounds(
+          calendarMonth,
+        )
+
+      const response =
+        await fetchBookingMonthSummary({
+          serviceId,
+          locationId,
+          providerId,
+          from: range.from,
+          to: range.to,
+        })
+
+      const object =
+        asRecord(response)
+
+      setMonthSummary(
+        records(
+          object?.days,
+        ),
+      )
+
+      const maxDays =
+        Number(
+          object?.max_advance_days ||
+          180,
+        )
+
+      if (
+        Number.isFinite(maxDays) &&
+        maxDays > 0
+      ) {
+        setMaxAdvanceDays(maxDays)
+      }
+    } catch (e) {
+      setMonthSummary([])
+
+      setError(
+        e instanceof Error
+          ? e.message
+          : 'Nao foi possivel carregar o calendario de vagas.',
+      )
+    } finally {
+      setMonthLoading(false)
+    }
+  }
+
+`
+  booking = booking.slice(0, pos) + functionBlock + booking.slice(pos)
+}
+
+if (!booking.includes('BLOCO_32_CALENDARIO_MENSAL_UI')) {
+  const startMarker = `              {step === 4 && (`
+  const endMarker = `              {step === 5 && (`
+
+  const start = booking.indexOf(startMarker)
+  const end = booking.indexOf(endMarker, start + startMarker.length)
+
+  if (start < 0 || end < 0) {
+    restoreSite()
+    die('Nao encontrei os blocos step 4 / step 5 em Booking.tsx.')
+  }
+
+  const step4 = `              {/* BLOCO_32_CALENDARIO_MENSAL_UI */}
+              {step === 4 && (
+                <div className="booking-step-content">
+                  <style>{\`
+                    .booking-month-shell {
+                      margin-top: 28px;
+                      border: 1px solid #eadde0;
+                      border-radius: 24px;
+                      padding: 22px;
+                      background: linear-gradient(180deg,#fff 0%,#fffafa 100%);
+                    }
+                    .booking-month-head {
+                      display: flex;
+                      align-items: center;
+                      justify-content: space-between;
+                      gap: 12px;
+                      margin-bottom: 18px;
+                    }
+                    .booking-month-title {
+                      font-size: 21px;
+                      font-weight: 800;
+                      color: #1f1c1d;
+                      text-align: center;
+                    }
+                    .booking-month-arrow {
+                      width: 42px;
+                      height: 42px;
+                      border-radius: 13px;
+                      border: 1px solid #eadde0;
+                      background: #fff;
+                      color: #7b0e29;
+                      display: inline-flex;
+                      align-items: center;
+                      justify-content: center;
+                      cursor: pointer;
+                    }
+                    .booking-month-arrow:disabled {
+                      opacity: .3;
+                      cursor: not-allowed;
+                    }
+                    .booking-calendar-grid {
+                      display: grid;
+                      grid-template-columns: repeat(7,minmax(0,1fr));
+                      gap: 8px;
+                    }
+                    .booking-weekday {
+                      text-align: center;
+                      font-size: 11px;
+                      font-weight: 800;
+                      letter-spacing: .06em;
+                      color: #8a7379;
+                      padding: 8px 2px;
+                    }
+                    .booking-day {
+                      min-height: 84px;
+                      border-radius: 16px;
+                      border: 1px solid #ece6e8;
+                      padding: 9px 7px;
+                      background: #f7f6f6;
+                      color: #8d898a;
+                      text-align: left;
+                      display: flex;
+                      flex-direction: column;
+                      justify-content: space-between;
+                      gap: 5px;
+                    }
+                    button.booking-day {
+                      cursor: pointer;
+                    }
+                    .booking-day.available {
+                      background: #effaf3;
+                      border-color: #b9e4c8;
+                      color: #155b32;
+                      box-shadow: 0 7px 20px rgba(22,112,61,.06);
+                    }
+                    .booking-day.available:hover {
+                      transform: translateY(-1px);
+                      border-color: #75c593;
+                    }
+                    .booking-day.sold-out {
+                      background: #fff9e7;
+                      border-color: #f1d98a;
+                      color: #815d00;
+                    }
+                    .booking-day.selected {
+                      outline: 2px solid #7b0e29;
+                      outline-offset: 1px;
+                      box-shadow: 0 8px 24px rgba(123,14,41,.13);
+                    }
+                    .booking-day.outside {
+                      opacity: .42;
+                    }
+                    .booking-day-number {
+                      font-size: 15px;
+                      font-weight: 800;
+                      line-height: 1;
+                    }
+                    .booking-day-status {
+                      font-size: 10px;
+                      font-weight: 750;
+                      line-height: 1.15;
+                    }
+                    .booking-calendar-legend {
+                      display: flex;
+                      flex-wrap: wrap;
+                      gap: 12px 18px;
+                      margin-top: 15px;
+                      font-size: 12px;
+                      color: #6e6164;
+                    }
+                    .booking-calendar-legend span {
+                      display: inline-flex;
+                      align-items: center;
+                      gap: 7px;
+                    }
+                    .booking-calendar-dot {
+                      width: 9px;
+                      height: 9px;
+                      border-radius: 50%;
+                      display: inline-block;
+                    }
+                    .booking-selected-date {
+                      margin-top: 24px;
+                      margin-bottom: 12px;
+                      font-size: 16px;
+                      font-weight: 750;
+                      color: #341f25;
+                    }
+                    .booking-calendar-loading {
+                      text-align: center;
+                      padding: 10px;
+                      margin-bottom: 12px;
+                      color: #7b0e29;
+                      font-size: 13px;
+                      font-weight: 700;
+                    }
+                    @media (max-width: 680px) {
+                      .booking-month-shell {
+                        padding: 14px 10px;
+                        border-radius: 18px;
+                      }
+                      .booking-calendar-grid {
+                        gap: 4px;
+                      }
+                      .booking-day {
+                        min-height: 65px;
+                        border-radius: 11px;
+                        padding: 7px 4px;
+                      }
+                      .booking-day-number {
+                        font-size: 13px;
+                      }
+                      .booking-day-status {
+                        font-size: 8px;
+                      }
+                      .booking-month-title {
+                        font-size: 17px;
+                      }
+                      .booking-month-arrow {
+                        width: 36px;
+                        height: 36px;
+                      }
+                    }
+                  \`}</style>
+
+                  <span className="eyebrow">
+                    Passo 04
+                  </span>
+
+                  <h2>
+                    Escolha data e horário
+                  </h2>
+
+                  <p>
+                    Veja as vagas do mês e selecione uma data.
+                    Depois escolha um dos horários disponíveis.
+                  </p>
+
+                  <div className="booking-month-shell">
+                    <div className="booking-month-head">
+                      <button
+                        type="button"
+                        className="booking-month-arrow"
+                        disabled={previousBookingMonthDisabled}
+                        onClick={() => {
+                          setCalendarMonth(
+                            shiftBookingMonth(
+                              calendarMonth,
+                              -1,
+                            ),
+                          )
+                          setDate('')
+                          setSelectedSlotStart('')
+                          setSlots([])
+                        }}
+                        aria-label="Mês anterior"
+                      >
+                        <ChevronLeft size={20} />
+                      </button>
+
+                      <div className="booking-month-title">
+                        {bookingMonthLabel(
+                          calendarMonth,
+                        )}
+                      </div>
+
+                      <button
+                        type="button"
+                        className="booking-month-arrow"
+                        disabled={nextBookingMonthDisabled}
+                        onClick={() => {
+                          setCalendarMonth(
+                            nextBookingMonth,
+                          )
+                          setDate('')
+                          setSelectedSlotStart('')
+                          setSlots([])
+                        }}
+                        aria-label="Próximo mês"
+                      >
+                        <ChevronRight size={20} />
+                      </button>
+                    </div>
+
+                    {monthLoading && (
+                      <div className="booking-calendar-loading">
+                        Atualizando vagas do mês...
+                      </div>
+                    )}
+
+                    <div className="booking-calendar-grid">
+                      {[
+                        'DOM',
+                        'SEG',
+                        'TER',
+                        'QUA',
+                        'QUI',
+                        'SEX',
+                        'SÁB',
+                      ].map((label) => (
+                        <div
+                          className="booking-weekday"
+                          key={label}
+                        >
+                          {label}
+                        </div>
+                      ))}
+
+                      {bookingCalendarDays.map(
+                        (calendarDate, index) => {
+                          if (!calendarDate) {
+                            return (
+                              <div
+                                key={'empty-' + index}
+                              />
+                            )
+                          }
+
+                          const item =
+                            monthSummaryMap.get(
+                              calendarDate,
+                            )
+
+                          const availableCount =
+                            Number(
+                              item?.available_count ||
+                              0,
+                            )
+
+                          const dayStatus =
+                            text(
+                              item,
+                              ['status'],
+                              'unavailable',
+                            )
+
+                          const inRange =
+                            calendarDate >= today() &&
+                            calendarDate <=
+                              lastAllowedBookingDate
+
+                          const selectable =
+                            inRange &&
+                            availableCount > 0
+
+                          const soldOut =
+                            inRange &&
+                            dayStatus === 'sold_out'
+
+                          const selected =
+                            date === calendarDate
+
+                          const dayNumber =
+                            Number(
+                              calendarDate.slice(8, 10),
+                            )
+
+                          const className = [
+                            'booking-day',
+                            selectable
+                              ? 'available'
+                              : soldOut
+                                ? 'sold-out'
+                                : '',
+                            selected
+                              ? 'selected'
+                              : '',
+                            !inRange
+                              ? 'outside'
+                              : '',
+                          ]
+                            .filter(Boolean)
+                            .join(' ')
+
+                          const content = (
+                            <>
+                              <span className="booking-day-number">
+                                {dayNumber}
+                              </span>
+
+                              <span className="booking-day-status">
+                                {selectable
+                                  ? availableCount === 1
+                                    ? '1 vaga'
+                                    : availableCount +
+                                      ' vagas'
+                                  : soldOut
+                                    ? 'Esgotado'
+                                    : inRange
+                                      ? 'Sem agenda'
+                                      : ''}
+                              </span>
+                            </>
+                          )
+
+                          if (!selectable) {
+                            return (
+                              <div
+                                key={calendarDate}
+                                className={className}
+                                title={
+                                  soldOut
+                                    ? 'Vagas esgotadas'
+                                    : 'Data indisponível'
+                                }
+                              >
+                                {content}
+                              </div>
+                            )
+                          }
+
+                          return (
+                            <button
+                              type="button"
+                              key={calendarDate}
+                              className={className}
+                              onClick={() => {
+                                setDate(
+                                  calendarDate,
+                                )
+                                setSelectedSlotStart('')
+                              }}
+                            >
+                              {content}
+                            </button>
+                          )
+                        },
+                      )}
+                    </div>
+
+                    <div className="booking-calendar-legend">
+                      <span>
+                        <i
+                          className="booking-calendar-dot"
+                          style={{
+                            background: '#58b777',
+                          }}
+                        />
+                        Vagas disponíveis
+                      </span>
+
+                      <span>
+                        <i
+                          className="booking-calendar-dot"
+                          style={{
+                            background: '#e2bd45',
+                          }}
+                        />
+                        Vagas esgotadas
+                      </span>
+
+                      <span>
+                        <i
+                          className="booking-calendar-dot"
+                          style={{
+                            background: '#c7c4c5',
+                          }}
+                        />
+                        Sem atendimento
+                      </span>
+                    </div>
+                  </div>
+
+                  {!date ? (
+                    <div className="booking-empty">
+                      Clique em uma data verde para ver
+                      os horários disponíveis.
+                    </div>
+                  ) : slotsLoading ? (
+                    <div className="booking-empty">
+                      Consultando horários...
+                    </div>
+                  ) : slots.length === 0 ? (
+                    <div className="booking-empty important">
+                      <Clock3 size={25} />
+
+                      <div>
+                        <strong>
+                          As vagas desta data acabaram de mudar
+                        </strong>
+
+                        <span>
+                          Escolha outra data disponível no
+                          calendário.
+                        </span>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="booking-selected-date">
+                        Horários disponíveis em {formatDate(date)}
+                      </div>
+
+                      <div className="time-grid">
+                        {slots.map(
+                          (slot, index) => {
+                            const start =
+                              slotStart(slot)
+
+                            if (!start) return null
+
+                            return (
+                              <button
+                                key={
+                                  start + '-' + index
+                                }
+                                className={
+                                  selectedSlotStart ===
+                                  start
+                                    ? 'selected'
+                                    : ''
+                                }
+                                onClick={() => {
+                                  setSelectedSlotStart(
+                                    start,
+                                  )
+                                  setStep(5)
+                                }}
+                              >
+                                {formatTime(start)}
+                              </button>
+                            )
+                          },
+                        )}
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
+
+`
+
+  booking = booking.slice(0, start) + step4 + booking.slice(end)
+}
+
+write(bookingPath, booking)
+console.log('OK - Booking.tsx recebeu o calendario mensal.')
+
+function run(command, args, cwd) {
+  const result = spawnSync(command, args, {
+    cwd,
+    stdio: 'inherit',
+    shell: process.platform === 'win32',
+  })
+
+  return result.status ?? 1
+}
+
+console.log('')
+console.log('============================================================')
+console.log(' VALIDANDO BUILD DO SITE')
+console.log('============================================================')
+
+const npm = process.platform === 'win32' ? 'npm.cmd' : 'npm'
+const npx = process.platform === 'win32' ? 'npx.cmd' : 'npx'
+
+if (run(npm, ['run', 'build'], SITE) !== 0) {
+  restoreSite()
+  die('Build do site falhou. Arquivos restaurados. Nada remoto foi alterado.')
+}
+
+console.log('')
+console.log('OK - BUILD DO SITE APROVADO.')
+
+console.log('')
+console.log('============================================================')
+console.log(' VALIDANDO BUILD DO SISTEMA')
+console.log('============================================================')
+
+if (run(npm, ['run', 'build'], SYSTEM) !== 0) {
+  restoreSite()
+  die('Build do sistema falhou. Arquivos restaurados. Nada remoto foi alterado.')
+}
+
+console.log('')
+console.log('OK - BUILD DO SISTEMA APROVADO.')
+
+console.log('')
+console.log('============================================================')
+console.log(' APLICANDO MIGRATION NO SUPABASE')
+console.log('============================================================')
+
+if (run(npx, ['supabase', 'db', 'push'], SYSTEM) !== 0) {
+  die('Supabase db push falhou. Nao houve deploy do site.')
+}
+
+console.log('')
+console.log('============================================================')
+console.log(' PUBLICANDO EDGE FUNCTION')
+console.log('============================================================')
+
+if (
+  run(
+    npx,
+    [
+      'supabase',
+      'functions',
+      'deploy',
+      'public-booking',
+      '--no-verify-jwt',
+    ],
+    SYSTEM,
+  ) !== 0
+) {
+  die('Deploy da Edge Function falhou. Nao publique o site ainda.')
+}
+
+console.log('')
+console.log('============================================================')
+console.log(' PUBLICANDO SITE')
+console.log('============================================================')
+
+if (run(npm, ['run', 'deploy'], SITE) !== 0) {
+  die('Deploy do site falhou.')
+}
+
+console.log('')
+console.log('============================================================')
+console.log(' BLOCO 32 CONCLUIDO')
+console.log('============================================================')
+console.log('')
+console.log('Calendario mensal publicado com:')
+console.log('- contador de vagas por dia')
+console.log('- dias esgotados')
+console.log('- dias sem atendimento')
+console.log('- navegacao mensal')
+console.log('- limite dinamico de antecedencia')
+console.log('- horarios ao clicar na data')
+console.log('- avanco automatico para confirmacao ao escolher horario')
+console.log('')
+console.log('Backup:', backup)
+console.log('')
+console.log('Nao foi feito git commit automaticamente.')

@@ -1,0 +1,14 @@
+export const clinicConfig = {
+  whatsapp: "https://wa.me/554195969494",
+  instagram: "",
+  phone: "",
+  email: "",
+  address: "",
+  bookingUrl: "/agendar",
+};
+
+export const convenios: Array<{
+  nome: string;
+  logo: string;
+  servicos?: string[];
+}> = [];

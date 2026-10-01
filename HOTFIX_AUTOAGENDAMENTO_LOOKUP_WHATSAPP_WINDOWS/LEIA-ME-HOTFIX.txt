@@ -1,0 +1,26 @@
+HOTFIX AUTOAGENDAMENTO + WHATSAPP — WINDOWS
+
+Corrige em um único instalador:
+- erro “Ação inválida” ao consultar agendamento;
+- consulta por telefone + CPF ou telefone + protocolo;
+- geração de novo token de gerenciamento após identificação;
+- botão flutuante do WhatsApp que estava voltando ao autoagendamento;
+- botão “Não encontrei / preciso de ajuda”;
+- build do site;
+- deploy da Edge Function public-booking;
+- deploy do site quando package.json possui script deploy.
+
+O instalador cria backup em C:\Projetos\BACKUP_HOTFIX_AUTOAGENDAMENTO_<data>.
+
+COMO USAR
+1. Extraia o ZIP.
+2. No PowerShell:
+   cd "C:\Projetos\SITE-DRA-ANDRESSA"
+3. Rode:
+   node "CAMINHO_EXTRAIDO\APLICAR_HOTFIX_AUTOAGENDAMENTO_WHATSAPP_WINDOWS.mjs"
+
+Se ele disser que não encontrou o número de WhatsApp, adicione no .env.local:
+VITE_WHATSAPP_NUMBER=55DDDNÚMERO
+e rode novamente.
+
+Depois faça Ctrl+F5 e teste os três pontos.

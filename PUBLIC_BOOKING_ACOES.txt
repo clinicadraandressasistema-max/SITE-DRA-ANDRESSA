@@ -1,0 +1,206 @@
+﻿  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\admin-users\index.ts:96:      )
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\admin-users\index.ts:97:    }
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\admin-users\index.ts:98:
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\admin-users\index.ts:99:    const body = await req.json()
+> C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\admin-users\index.ts:100:    const action = String(body.action || '')
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\admin-users\index.ts:101:
+> C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\admin-users\index.ts:102:    if (action === 'create') {
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\admin-users\index.ts:103:      const email = String(body.email || '').trim().toLowerCase()
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\admin-users\index.ts:104:      const fullName = String(body.full_name || '').trim()
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\admin-users\index.ts:105:
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\admin-users\index.ts:106:      if (!email || !fullName) {
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\admin-users\index.ts:107:        return json(
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\admin-users\index.ts:108:          { error: 'Nome completo e e-mail são obrigatórios.' },
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\admin-users\index.ts:109:          400,
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\admin-users\index.ts:110:        )
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\admin-users\index.ts:111:      }
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\admin-users\index.ts:112:
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\admin-users\index.ts:150:        temporary_password: password,
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\admin-users\index.ts:151:      })
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\admin-users\index.ts:152:    }
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\admin-users\index.ts:153:
+> C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\admin-users\index.ts:154:    if (action === 'update') {
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\admin-users\index.ts:155:      const userId = String(body.user_id || '').trim()
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\admin-users\index.ts:156:      const fullName = String(body.full_name || '').trim()
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\admin-users\index.ts:157:      const email = String(body.email || '').trim().toLowerCase()
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\admin-users\index.ts:158:      const role = String(body.role || '').trim()
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\admin-users\index.ts:159:      const active = Boolean(body.active)
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\admin-users\index.ts:160:
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\admin-users\index.ts:161:      if (!userId || !fullName || !email || !role) {
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\admin-users\index.ts:162:        return json(
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\admin-users\index.ts:163:          {
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\admin-users\index.ts:164:            error:
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\admin-users\index.ts:251:        user_id: userId,
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\admin-users\index.ts:252:      })
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\admin-users\index.ts:253:    }
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\admin-users\index.ts:254:
+> C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\admin-users\index.ts:255:    return json({ error: 'Ação inválida.' }, 400)
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\admin-users\index.ts:256:  } catch (error) {
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\admin-users\index.ts:257:    return json(
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\admin-users\index.ts:258:      {
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\admin-users\index.ts:259:        error:
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\admin-users\index.ts:260:          error instanceof Error
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\admin-users\index.ts:261:            ? error.message
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\admin-users\index.ts:262:            : 'Não foi possível gerenciar o usuário.',
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\admin-users\index.ts:263:      },
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\admin-users\index.ts:264:      400,
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\admin-users\index.ts:265:    )
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\contract-documents\index.ts:87:  if (req.method === 'OPTIONS') return new Response('ok',{headers:cors})
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\contract-documents\index.ts:88:  try {
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\contract-documents\index.ts:89:    const admin = createClient(Deno.env.get('SUPABASE_URL')!,secretKey(),{auth:{persistSession:false,autoRefreshToken:false}})
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\contract-documents\index.ts:90:    const body = await req.json()
+> C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\contract-documents\index.ts:91:    const action = String(body.action || '')
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\contract-documents\index.ts:92:
+> C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\contract-documents\index.ts:93:    if (action === 'generate') {
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\contract-documents\index.ts:94:      const caller = await authCaller(admin,req)
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\contract-documents\index.ts:95:      const saleId = String(body.sale_id || '')
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\contract-documents\index.ts:96:      const { data:sale,error:se } = await admin.from('sales').select('*').eq('id',saleId).single()
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\contract-documents\index.ts:97:      if (se || !sale) throw se || new Error('Venda não encontrada.')
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\contract-documents\index.ts:98:
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\contract-documents\index.ts:99:      const [patientRes,itemsRes,installmentsRes,clinicRes] = await Promise.all([
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\contract-documents\index.ts:100:        admin.from('patients').select('*').eq('id',sale.patient_id).single(),
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\contract-documents\index.ts:101:        admin.from('sale_items').select('*').eq('sale_id',sale.id).order('created_at'),
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\contract-documents\index.ts:102:        admin.from('installments').select('*').eq('sale_id',sale.id).order('installment_number'),
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\contract-documents\index.ts:103:        admin.from('clinic_settings').select('*').eq('settings_key','main').maybeSingle(),
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\contract-documents\index.ts:191:      await admin.from('contract_events').insert({ contract_id:contract.id,event_type:'gerado_automaticamente',new_status:'enviado',metadata:{sale_id:sale.id},performed_by:caller.id })
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\contract-documents\index.ts:192:      return json({ contract_id:contract.id,contract_number:contract.contract_number,token:raw })
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\contract-documents\index.ts:193:    }
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\contract-documents\index.ts:194:
+> C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\contract-documents\index.ts:195:    if (action === 'create_link') {
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\contract-documents\index.ts:196:      const caller = await authCaller(admin,req)
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\contract-documents\index.ts:197:      const { data:contract,error } = await admin.from('contracts').select('*').eq('id',String(body.contract_id || '')).single()
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\contract-documents\index.ts:198:      if (error || !contract) throw error || new Error('Contrato não encontrado.')
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\contract-documents\index.ts:199:      if (contract.signed_at) throw new Error('Este contrato já foi assinado.')
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\contract-documents\index.ts:200:      const raw = await createShare(admin,contract,caller.id)
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\contract-documents\index.ts:201:      return json({ token:raw })
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\contract-documents\index.ts:202:    }
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\contract-documents\index.ts:203:
+> C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\contract-documents\index.ts:204:    if (action === 'view' || action === 'sign') {
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\contract-documents\index.ts:205:      const hash = await sha256(String(body.token || ''))
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\contract-documents\index.ts:206:      const { data:request,error:re } = await admin.from('contract_signature_requests').select('*').eq('public_token_hash',hash).order('created_at',{ascending:false}).limit(1).single()
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\contract-documents\index.ts:207:      if (re || !request) throw new Error('Link inválido ou expirado.')
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\contract-documents\index.ts:208:      const expires = request.public_token_expires_at || request.expires_at
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\contract-documents\index.ts:209:      if (expires && new Date(expires).getTime() < Date.now()) throw new Error('Este link de assinatura expirou.')
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\contract-documents\index.ts:210:      const { data:contract,error:ce } = await admin.from('contracts').select('*').eq('id',request.contract_id).single()
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\contract-documents\index.ts:211:      if (ce || !contract) throw ce || new Error('Contrato não encontrado.')
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\contract-documents\index.ts:212:
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\contract-documents\index.ts:213:      const [clinicSignatureRes,documentSettingsRes] = await Promise.all([
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\contract-documents\index.ts:214:        admin.from('contract_clinic_signatures').select('*').eq('contract_id',contract.id).maybeSingle(),
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\contract-documents\index.ts:224:        logo: documentSettings.logo_data_url || '/media/papelaria/logo.png',
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\contract-documents\index.ts:225:        validation_base_url: documentSettings.validation_base_url || '',
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\contract-documents\index.ts:226:      }
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\contract-documents\index.ts:227:
+> C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\contract-documents\index.ts:228:      if (action === 'view') {
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\contract-documents\index.ts:229:        if (!contract.signed_at) {
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\contract-documents\index.ts:230:          await admin.from('contract_signature_requests').update({ status:'visualizado',viewed_at:new Date().toISOString() }).eq('id',request.id)
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\contract-documents\index.ts:231:          await admin.from('contracts').update({ status:'visualizado',viewed_at:new Date().toISOString() }).eq('id',contract.id)
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\contract-documents\index.ts:232:        }
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\contract-documents\index.ts:233:        return json({ contract_number:contract.contract_number,title:contract.title,rendered_html:contract.rendered_html,signer_name:request.signer_name,status:contract.status,signed_at:contract.signed_at,...publicExtras })
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\contract-documents\index.ts:234:      }
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\contract-documents\index.ts:235:
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\contract-documents\index.ts:236:      if (!body.accepted || String(body.signer_name || '').trim().length < 3) throw new Error('Confirme o aceite e informe o nome completo.')
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\contract-documents\index.ts:237:      if (contract.signed_at) return json({ contract_number:contract.contract_number,title:contract.title,rendered_html:contract.rendered_html,signer_name:request.signer_name,status:contract.status,signed_at:contract.signed_at,...publicExtras })
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\contract-documents\index.ts:238:
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\contract-documents\index.ts:254:      await admin.from('contract_events').insert({ contract_id:contract.id,event_type:'assinado_eletronicamente',old_status:contract.status,new_status:'assinado',metadata:{document_sha256:documentHash},created_at:signedAt })
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\contract-documents\index.ts:255:      return json({ contract_number:contract.contract_number,title:contract.title,rendered_html:contract.rendered_html,signer_name:signerName,status:'assinado',signed_at:signedAt,...publicExtras })
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\contract-documents\index.ts:256:    }
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\contract-documents\index.ts:257:
+> C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\contract-documents\index.ts:258:    return json({ error:'Ação inválida.' },400)
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\contract-documents\index.ts:259:  } catch(error) {
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\contract-documents\index.ts:260:    return json({ error:error instanceof Error ? error.message : 'Erro interno.' },400)
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\contract-documents\index.ts:261:  }
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\contract-documents\index.ts:262:})
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\contract-signature-v2\index.ts:4:const admin=createClient(Deno.env.get('SUPABASE_URL')!,secretKey(),{auth:{persistSession:false,autoRefreshToken:false}})
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\contract-signature-v2\index.ts:5:const json=(data:unknown,status=200)=>new Response(JSON.stringify(data),{status,headers:{...cors,'Content-Type':'application/json'}})
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\contract-signature-v2\index.ts:6:async function sha(v:string){const d=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(v));return Array.from(new Uint8Array(d),x=>x.toString(16).padStart(2,'0')).join('')}
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\contract-signature-v2\index.ts:7:function code(){const a=new Uint8Array(8);crypto.getRandomValues(a);return Array.from(a,x=>x.toString(16).padStart(2,'0')).join('').toUpperCase()}
+> C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\contract-signature-v2\index.ts:8:Deno.serve(async req=>{if(req.method==='OPTIONS')return new Response('ok',{headers:cors});if(req.method!=='POST')return json({error:'Método não permitido.'},405);try{const b=await req.json();const token=String(b.token||'').trim();if(!token)return json({error:'Token ausente.'},400);const tokenHash=await sha(token);const {data:request,error:re}=await admin.from('contract_signature_requests').select('id,contract_id,public_token_expires_at').eq('public_token_hash',tokenHash).maybeSingle();if(re||!request)return json({error:'Link de assinatura inválido.'},404);if(request.public_token_expires_at&&new Date(request.public_token_expires_at).getTime()<Date.now())return json({error:'Este link expirou.'},410);const {data:contract}=await admin.from('contracts').select('id,contract_number,title,signed_at').eq('id',request.contract_id).maybeSingle();if(!contract)return json({error:'Contrato não encontrado.'},404);if(String(b.action||'')==='view'){const {data:sig}=await admin.from('contract_patient_signatures').select('*').eq('contract_id',request.contract_id).maybeSingle();return json({signature:sig||null})}if(String(b.action||'')!=='register')return json({error:'Ação inválida.'},400);const signer=String(b.signer_name||'').trim(),signature=String(b.signature_data_url||'').trim();if(signer.length<3)return json({error:'Informe o nome completo.'},400);if(!signature.startsWith('data:image/'))return json({error:'Assinatura gráfica inválida.'},400);if(signature.length>1600000)return json({error:'Assinatura muito grande. Limpe e assine novamente.'},413);const signedAt=new Date().toISOString(),hash=await sha(`${request.contract_id}|${signer}|${signature}|${signedAt}`);const ip=req.headers.get('cf-connecting-ip')||req.headers.get('x-forwarded-for')||null,ua=req.headers.get('user-agent')||null;const existing=await admin.from('contract_patient_signatures').select('verification_code').eq('contract_id',request.contract_id).maybeSingle();const verification=existing.data?.verification_code||code();const {data:sig,error:se}=await admin.from('contract_patient_signatures').upsert({contract_id:request.contract_id,signature_request_id:request.id,signer_name:signer,signature_data_url:signature,signature_hash:hash,verification_code:verification,ip_address:ip,user_agent:ua,signed_at:signedAt},{onConflict:'contract_id'}).select('*').single();if(se)throw se;return json({ok:true,signature:sig})}catch(e){return json({error:e instanceof Error?e.message:'Erro inesperado.'},500)}})
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\password-reset-request\index.ts:35:            recipient_id: a.id,
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\password-reset-request\index.ts:36:            notification_type: 'sistema',
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\password-reset-request\index.ts:37:            title: 'Solicitação de redefinição de senha',
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\password-reset-request\index.ts:38:            message: `Foi solicitada uma redefinição de senha para o e-mail ${email}.`,
+> C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\password-reset-request\index.ts:39:            action_url: '/usuarios',
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\password-reset-request\index.ts:40:          })),
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\password-reset-request\index.ts:41:        )
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\password-reset-request\index.ts:42:      }
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\password-reset-request\index.ts:43:    }
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\password-reset-request\index.ts:44:    return json({ ok: true })
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\password-reset-request\index.ts:45:  } catch {
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\password-reset-request\index.ts:46:    return json({ ok: true })
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\password-reset-request\index.ts:47:  }
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\password-reset-request\index.ts:48:})
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\public-booking\index.ts:40:    const admin = createClient(Deno.env.get('SUPABASE_URL')!, secretKey(), {
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\public-booking\index.ts:41:      auth: { persistSession: false, autoRefreshToken: false },
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\public-booking\index.ts:42:    })
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\public-booking\index.ts:43:    const body = await req.json()
+> C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\public-booking\index.ts:44:    const action = String(body.action || '')
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\public-booking\index.ts:45:
+> C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\public-booking\index.ts:46:    if (action === 'catalog') {
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\public-booking\index.ts:47:      const { data, error } = await admin.rpc('get_public_booking_catalog_internal')
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\public-booking\index.ts:48:      if (error) throw error
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\public-booking\index.ts:49:      return json({ catalog: data })
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\public-booking\index.ts:50:    }
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\public-booking\index.ts:51:
+> C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\public-booking\index.ts:52:    if (action === 'slots') {
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\public-booking\index.ts:53:      const { data, error } = await admin.rpc('get_public_booking_slots_internal', {
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\public-booking\index.ts:54:        p_service_id: body.service_id,
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\public-booking\index.ts:55:        p_location_id: body.location_id,
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\public-booking\index.ts:56:        p_from: body.from,
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\public-booking\index.ts:57:        p_to: body.to,
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\public-booking\index.ts:58:        p_provider_id: body.provider_id || null,
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\public-booking\index.ts:59:      })
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\public-booking\index.ts:60:      if (error) throw error
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\public-booking\index.ts:61:      return json({ slots: data ?? [] })
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\public-booking\index.ts:62:    }
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\public-booking\index.ts:63:
+> C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\public-booking\index.ts:64:    if (action === 'create') {
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\public-booking\index.ts:65:      const rawToken = makeToken()
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\public-booking\index.ts:66:      const tokenHash = await sha256(rawToken)
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\public-booking\index.ts:67:      const { data, error } = await admin.rpc('create_public_booking_internal', {
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\public-booking\index.ts:68:        p_full_name: body.full_name,
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\public-booking\index.ts:69:        p_phone: body.phone,
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\public-booking\index.ts:70:        p_birth_date: body.birth_date || null,
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\public-booking\index.ts:71:        p_email: body.email || null,
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\public-booking\index.ts:72:        p_service_id: body.service_id,
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\public-booking\index.ts:73:        p_provider_id: body.provider_id,
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\public-booking\index.ts:74:        p_location_id: body.location_id,
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\public-booking\index.ts:79:      if (error) throw error
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\public-booking\index.ts:80:      return json({ receipt: data, token: rawToken })
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\public-booking\index.ts:81:    }
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\public-booking\index.ts:82:
+> C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\public-booking\index.ts:83:    if (action === 'receipt') {
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\public-booking\index.ts:84:      const hash = await sha256(String(body.token || ''))
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\public-booking\index.ts:85:      const { data, error } = await admin.rpc('get_public_booking_receipt_internal', { p_token_hash: hash })
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\public-booking\index.ts:86:      if (error) throw error
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\public-booking\index.ts:87:      return json({ receipt: data })
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\public-booking\index.ts:88:    }
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\public-booking\index.ts:89:
+> C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\public-booking\index.ts:90:    if (action === 'reschedule') {
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\public-booking\index.ts:91:      const hash = await sha256(String(body.token || ''))
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\public-booking\index.ts:92:      const { data, error } = await admin.rpc('reschedule_public_booking_internal', {
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\public-booking\index.ts:93:        p_token_hash: hash,
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\public-booking\index.ts:94:        p_service_id: body.service_id,
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\public-booking\index.ts:95:        p_provider_id: body.provider_id,
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\public-booking\index.ts:96:        p_location_id: body.location_id,
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\public-booking\index.ts:97:        p_new_start_at: body.new_start_at,
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\public-booking\index.ts:98:      })
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\public-booking\index.ts:99:      if (error) throw error
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\public-booking\index.ts:100:      return json({ receipt: data })
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\public-booking\index.ts:101:    }
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\public-booking\index.ts:102:
+> C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\public-booking\index.ts:103:    if (action === 'cancel') {
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\public-booking\index.ts:104:      const hash = await sha256(String(body.token || ''))
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\public-booking\index.ts:105:      const { data, error } = await admin.rpc('cancel_public_booking_internal', {
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\public-booking\index.ts:106:        p_token_hash: hash,
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\public-booking\index.ts:107:        p_reason: body.reason || null,
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\public-booking\index.ts:108:      })
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\public-booking\index.ts:109:      if (error) throw error
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\public-booking\index.ts:110:      return json({ receipt: data })
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\public-booking\index.ts:111:    }
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\public-booking\index.ts:112:
+> C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\public-booking\index.ts:113:    return json({ error: 'Ação inválida.' }, 400)
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\public-booking\index.ts:114:  } catch (error) {
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\public-booking\index.ts:115:    const message = error instanceof Error ? error.message : 'Erro interno.'
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\public-booking\index.ts:116:    return json({ error: message }, 400)
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\public-booking\index.ts:117:  }
+  C:\Projetos\SISTEMA-DRA-ANDRESSA\supabase\functions\public-booking\index.ts:118:})

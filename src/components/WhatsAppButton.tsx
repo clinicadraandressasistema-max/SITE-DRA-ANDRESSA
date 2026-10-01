@@ -1,26 +1,22 @@
 import { MessageCircle } from 'lucide-react'
-import { whatsappUrl } from '../data/site'
+
+const WHATSAPP_NUMBER = '5541995969494'
+const WHATSAPP_URL = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(
+  'OlÃ¡! Vim pelo site da Dra. Andressa e gostaria de falar com a equipe.',
+)}`
 
 export default function WhatsAppButton() {
   return (
     <a
-      className="whatsapp-float whatsapp-float-clean"
-      href={whatsappUrl()}
+      href={WHATSAPP_URL}
       target="_blank"
-      rel="noreferrer"
-      aria-label="Falar com a clínica pelo WhatsApp"
+      rel="noopener noreferrer"
+      aria-label="Falar com a ClÃ­nica Dra. Andressa no WhatsApp"
+      title="Falar no WhatsApp"
+      className="whatsapp-float-30b"
+      onClick={(event) => event.stopPropagation()}
     >
-      <span className="whatsapp-icon-shell">
-        <span className="whatsapp-icon-pulse" />
-        <span className="whatsapp-icon-circle">
-          <MessageCircle size={19} />
-        </span>
-      </span>
-
-      <span className="whatsapp-copy">
-        <strong>Chame a gente agora!</strong>
-        <small>Atendimento rápido no WhatsApp</small>
-      </span>
+      <MessageCircle size={29} strokeWidth={2.1} />
     </a>
   )
 }

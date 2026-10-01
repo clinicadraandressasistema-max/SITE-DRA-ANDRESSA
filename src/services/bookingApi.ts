@@ -1,4 +1,5 @@
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string | undefined
+// BLOCO_30B_API_SEGURA
 const publishableKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string | undefined
 const functionName =
   (import.meta.env.VITE_PUBLIC_BOOKING_FUNCTION as string | undefined) ||
@@ -8,7 +9,6 @@ export type BookingPatient = {
   fullName: string
   phone: string
   birthDate?: string
-  cpf?: string
   email?: string
 }
 
@@ -72,25 +72,40 @@ async function callPublicBooking(body: Record<string, unknown>) {
 }
 
 export async function identifyPatient(
-  cpf: string,
   phone: string,
+  birthDate: string,
+  email: string,
 ) {
-  return callPublicBooking({
+  const result = await callPublicBooking({
     action: 'identify',
-    cpf,
     phone,
-  })
+    birth_date: birthDate,
+    email,
+  }) as any
+
+  return {
+    found: Boolean(result?.found),
+    fullName: String(result?.full_name || ''),
+    message: String(result?.message || ''),
+  }
 }
 
 export async function checkExistingPatient(
-  cpf?: string,
-  phone?: string,
+  phone: string,
+  birthDate: string,
+  email: string,
 ) {
-  return callPublicBooking({
+  const result = await callPublicBooking({
     action: 'check_existing',
-    cpf: cpf || null,
-    phone: phone || null,
-  })
+    phone,
+    birth_date: birthDate,
+    email,
+  }) as any
+
+  return {
+    exists: Boolean(result?.exists),
+    message: String(result?.message || ''),
+  }
 }
 
 export async function fetchBookingCatalog() {
@@ -116,6 +131,24 @@ export async function fetchBookingSlots(input: {
   })
 }
 
+
+export async function fetchBookingMonthSummary(input: {
+  serviceId: string
+  locationId: string
+  providerId?: string
+  from: string
+  to: string
+}) {
+  return callPublicBooking({
+    action: 'month_summary',
+    service_id: input.serviceId,
+    location_id: input.locationId,
+    provider_id: input.providerId || null,
+    from: input.from,
+    to: input.to,
+  })
+}
+
 export async function createBooking(
   request: BookingRequest,
 ) {
@@ -130,9 +163,6 @@ export async function createBooking(
 
     birth_date:
       request.patient.birthDate || null,
-
-    cpf:
-      request.patient.cpf || null,
 
     email:
       request.patient.email || null,
@@ -179,11 +209,15 @@ export async function cancelBooking(
   })
 }
 
-export async function manageBooking(
-  input: Record<string, unknown>,
-) {
-  return callPublicBooking({
+export async function manageBooking(params: {
+  phone: string
+  protocol: string
+  reference?: string | null
+}) {
+  return await callPublicBooking({
     action: 'manage_booking',
-    ...input,
+    phone: params.phone,
+    protocol: params.protocol,
+    reference: params.reference || params.protocol,
   })
 }

@@ -1,0 +1,14 @@
+export const clinicConfig = {
+  whatsapp: "",
+  instagram: "",
+  phone: "",
+  email: "",
+  address: "",
+  bookingUrl: "",
+};
+
+export const convenios: Array<{
+  nome: string;
+  logo: string;
+  servicos?: string[];
+}> = [];

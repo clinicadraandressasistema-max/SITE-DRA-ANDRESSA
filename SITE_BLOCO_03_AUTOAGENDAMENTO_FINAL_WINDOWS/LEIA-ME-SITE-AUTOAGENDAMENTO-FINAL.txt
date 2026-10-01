@@ -1,0 +1,39 @@
+SITE DRA. ANDRESSA — AUTOAGENDAMENTO FINAL
+
+Este pacote atua SOMENTE no projeto do SITE:
+C:\Projetos\SITE-DRA-ANDRESSA
+
+ENTREGAS
+- Confirmação acolhedora após o agendamento.
+- Aviso sobre pagamento/sinal para garantir a reserva, conforme orientação da clínica.
+- WhatsApp preenchido com paciente, serviço, data, horário e protocolo.
+- Aba "Já tenho agendamento" com consulta por telefone + CPF ou protocolo.
+- Resultados com data, horário, serviço, unidade e status.
+- Google Agenda.
+- Calendário iPhone / Outlook em arquivo .ics.
+- O .ics inclui lembretes de 24h e 2h antes.
+- Botão de ajuda por WhatsApp.
+- Heartbeat do site conectado à métrica `site_presence_ping_v27` criada no Bloco 27 do sistema.
+- Build automático, commit/push e tentativa de deploy Cloudflare.
+
+INSTALAÇÃO
+1. Baixe e extraia este ZIP.
+2. Abra no VS Code: C:\Projetos\SITE-DRA-ANDRESSA
+3. Rode no PowerShell:
+
+$dest = "$env:USERPROFILE\Downloads\SITE_BLOCO_03_AUTOAGENDAMENTO_FINAL_WINDOWS"
+node "$dest\APLICAR_SITE_AUTOAGENDAMENTO_FINAL_WINDOWS.mjs"
+
+Se você extrair com outro nome/pasta, localize automaticamente:
+
+$p = Get-ChildItem "$env:USERPROFILE\Downloads" -Recurse -File -Filter "APLICAR_SITE_AUTOAGENDAMENTO_FINAL_WINDOWS.mjs" -ErrorAction SilentlyContinue | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+$p.FullName
+node "$($p.FullName)"
+
+IMPORTANTE
+- O instalador cria backup antes de alterar o site.
+- Se o npm run build falhar, restaura os arquivos anteriores.
+- Não altera o banco de dados.
+- A métrica de visitantes usa a função já instalada no Supabase pelo Bloco 27 Final do SISTEMA.
+- A consulta "Já tenho agendamento" usa a ação `manage_booking` que já existe no serviço atual do site (`bookingApi.ts`).
+- Google Assistente não recebe um compromisso diretamente pelo site; o botão Google Agenda salva o evento na conta Google e essa agenda fica disponível nos dispositivos/serviços Google do paciente.
