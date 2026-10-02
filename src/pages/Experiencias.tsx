@@ -1,285 +1,463 @@
-﻿import { ArrowLeft, ChevronLeft, ChevronRight, MapPin, Plane, Sparkles } from "lucide-react";
-import { useEffect, useState } from "react";
+﻿import { ArrowLeft, ChevronLeft, ChevronRight, MapPin, X } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import Globe from "react-globe.gl";
 import { imagensDaPasta } from "../lib/media";
 
-type Local = {
+type Destination = {
   id: string;
-  pais: string;
-  lugar: string;
-  texto: string;
-  pasta: string;
-  left: string;
-  top: string;
+  label: string;
+  country: string;
+  region: string;
+  lat: number;
+  lng: number;
+  folder: string;
+  description: string;
 };
 
-const locais: Local[] = [
+const destinations: Destination[] = [
   {
-    id: "brasil",
-    pais: "Brasil",
-    lugar: "ParanÃ¡ e Santa Catarina",
-    texto:
-      "ParanÃ¡ e Santa Catarina fazem parte da base da atuaÃ§Ã£o da Dra. Andressa no Brasil, reunindo cuidado mÃ©dico, planejamento individualizado e experiÃªncia em cirurgia, tricologia e restauraÃ§Ã£o capilar.",
-    pasta: "experiencias/brasil",
-    left: "34%",
-    top: "72%",
+    id: "parana",
+    label: "Paran\u00e1",
+    country: "Brasil",
+    region: "Sul do Brasil",
+    lat: -25.4284,
+    lng: -49.2733,
+    folder: "experiencias/brasil",
+    description:
+      "No Paran\u00e1, a trajet\u00f3ria da Dra. Andressa se conecta \u00e0 sua base de atua\u00e7\u00e3o no Brasil, com planejamento individualizado, cuidado m\u00e9dico e experi\u00eancia em cirurgia, tricologia e restaura\u00e7\u00e3o capilar.",
+  },
+  {
+    id: "santa-catarina",
+    label: "Santa Catarina",
+    country: "Brasil",
+    region: "Sul do Brasil",
+    lat: -27.5949,
+    lng: -48.5482,
+    folder: "experiencias/brasil",
+    description:
+      "Santa Catarina integra a atua\u00e7\u00e3o da Dra. Andressa no Sul do Brasil, reunindo experi\u00eancias profissionais e uma abordagem orientada por naturalidade, seguran\u00e7a e planejamento.",
   },
   {
     id: "madrid",
-    pais: "Espanha",
-    lugar: "Madrid",
-    texto:
-      "Madrid integra a trajetÃ³ria internacional da Dra. Andressa, conectando precisÃ£o tÃ©cnica, visÃ£o estÃ©tica e experiÃªncia profissional em diferentes contextos mÃ©dicos.",
-    pasta: "experiencias/madrid",
-    left: "49%",
-    top: "37%",
+    label: "Madrid",
+    country: "Espanha",
+    region: "Europa",
+    lat: 40.4168,
+    lng: -3.7038,
+    folder: "experiencias/madrid",
+    description:
+      "Madrid faz parte da trajet\u00f3ria internacional da Dra. Andressa, ampliando repert\u00f3rio profissional e conectando t\u00e9cnica, vis\u00e3o est\u00e9tica e experi\u00eancias em diferentes contextos.",
   },
   {
     id: "lisboa",
-    pais: "Portugal",
-    lugar: "Lisboa",
-    texto:
-      "Em Lisboa, a atuaÃ§Ã£o internacional se soma Ã  trajetÃ³ria da Dra. Andressa com atendimento e procedimentos orientados por planejamento, naturalidade e cuidado individualizado.",
-    pasta: "experiencias/lisboa",
-    left: "46.5%",
-    top: "40%",
+    label: "Lisboa",
+    country: "Portugal",
+    region: "Europa",
+    lat: 38.7223,
+    lng: -9.1393,
+    folder: "experiencias/lisboa",
+    description:
+      "Lisboa representa mais um ponto dessa trajet\u00f3ria internacional, com experi\u00eancias profissionais ligadas ao cuidado individualizado, planejamento e naturalidade.",
   },
   {
     id: "israel",
-    pais: "Israel",
-    lugar: "Israel",
-    texto:
-      "Israel compÃµe essa trajetÃ³ria profissional com uma experiÃªncia marcada pelo contato com diferentes contextos mÃ©dicos, tecnologia e prÃ¡tica internacional.",
-    pasta: "experiencias/israel",
-    left: "57%",
-    top: "46%",
+    label: "Israel",
+    country: "Israel",
+    region: "Oriente M\u00e9dio",
+    lat: 31.7683,
+    lng: 35.2137,
+    folder: "experiencias/israel",
+    description:
+      "Israel comp\u00f5e essa trajet\u00f3ria internacional com contato com diferentes contextos m\u00e9dicos, tecnologia e pr\u00e1tica profissional, ampliando perspectivas e repert\u00f3rio.",
   },
 ];
 
-const css = `
-.exp{min-height:100vh;background:#130d0f;color:#fff;font-family:"DM Sans",Arial,sans-serif}
-.exp *{box-sizing:border-box}.exp a{text-decoration:none;color:inherit}
-.exp-head{position:fixed;z-index:50;top:0;left:0;right:0;height:76px;padding:0 clamp(18px,4vw,60px);display:grid;grid-template-columns:1fr auto 1fr;align-items:center;background:rgba(19,13,15,.8);backdrop-filter:blur(18px);border-bottom:1px solid rgba(255,255,255,.08)}
-.exp-back{display:flex;align-items:center;gap:8px;font-size:12px;color:#d7cdd0}.exp-brand{text-align:center}.exp-brand strong{display:block;font-family:"Playfair Display",serif;font-size:23px;font-weight:500}.exp-brand span,.exp-label{font-size:7px;letter-spacing:.18em;color:#ca9266;font-weight:800}.exp-label{justify-self:end}
-.exp-hero{min-height:100vh;padding:145px clamp(24px,8vw,145px) 90px;display:flex;flex-direction:column;justify-content:center;position:relative;overflow:hidden;background:radial-gradient(circle at 78% 20%,rgba(202,146,102,.17),transparent 28%),linear-gradient(135deg,#130d0f,#281116 55%,#4a0d1d)}
-.exp-hero:before{content:"";position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.03) 1px,transparent 1px);background-size:80px 80px;opacity:.45}
-.exp-copy{position:relative;z-index:2;max-width:1050px}.exp-kicker{display:flex;gap:9px;align-items:center;color:#ca9266;font-size:9px;font-weight:800;letter-spacing:.22em}.exp h1{font-family:"Playfair Display",serif;font-size:clamp(4rem,8vw,8.2rem);line-height:.88;font-weight:500;letter-spacing:-.045em;margin:25px 0}.exp h1 em{color:#e6b18a;font-weight:500}.exp-copy p{max-width:620px;color:rgba(255,255,255,.65);line-height:1.8;font-size:14px}.exp-jump{display:inline-flex;gap:18px;margin-top:28px;padding-bottom:8px;border-bottom:1px solid rgba(202,146,102,.55);font-size:12px}
-.exp-map-sec{padding:100px clamp(16px,5vw,76px) 110px;background:#f7f2ee;color:#2b2422}.exp-intro{max-width:1450px;margin:0 auto 45px;display:flex;justify-content:space-between;align-items:end;gap:40px}.exp-intro small{color:#71122a;font-weight:800;letter-spacing:.2em}.exp-intro h2{margin:10px 0 0;font-family:"Playfair Display",serif;font-size:clamp(3rem,5vw,5.5rem);font-weight:500}.exp-intro p{max-width:450px;color:#756c68;line-height:1.7;font-size:13px}
-.exp-grid{max-width:1450px;margin:auto;display:grid;grid-template-columns:1.35fr .65fr;gap:18px}.map-card,.detail{border-radius:28px;overflow:hidden}
-.map-card{background:radial-gradient(circle at 50% 45%,rgba(202,146,102,.09),transparent 33%),#151012;min-height:650px;display:flex;flex-direction:column;color:#fff;box-shadow:0 26px 70px rgba(50,18,27,.14)}
-.map-top,.map-bottom{padding:22px 26px;display:flex;justify-content:space-between;color:rgba(255,255,255,.45);font-size:8px;letter-spacing:.17em;font-weight:800}.map-top{border-bottom:1px solid rgba(255,255,255,.07)}.map-bottom{border-top:1px solid rgba(255,255,255,.07)}.map-bottom span{display:flex;align-items:center;gap:7px}
-.world{position:relative;flex:1;min-height:530px;overflow:hidden}.world svg{position:absolute;inset:8% 4%;width:92%;height:84%}.land path{fill:rgba(255,255,255,.075);stroke:rgba(255,255,255,.18);stroke-width:1.2}.grid path{fill:none;stroke:rgba(255,255,255,.035)}
-.pin{position:absolute;z-index:5;transform:translate(-50%,-50%);width:22px;height:22px;border:0;background:transparent}.pin:before{content:"";position:absolute;inset:6px;border-radius:50%;background:#ca9266;border:2px solid #fff;box-shadow:0 0 0 7px rgba(202,146,102,.12)}.pin:after{content:"";position:absolute;inset:0;border:1px solid #ca9266;border-radius:50%;animation:pulse 2s infinite}.pin b{position:absolute;top:28px;left:50%;transform:translateX(-50%);white-space:nowrap;background:rgba(16,11,13,.9);border:1px solid rgba(255,255,255,.1);border-radius:999px;padding:6px 9px;color:#ddd;font-size:8px}.pin.active b,.pin:hover b{background:#71122a;color:#fff;border-color:#ca9266}.pin.active:before{background:#71122a}
-@keyframes pulse{0%{transform:scale(.7);opacity:1}100%{transform:scale(2.2);opacity:0}}
-.detail{background:#fff;border:1px solid rgba(113,18,42,.09);display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(50,18,27,.08)}.detail-copy{padding:32px}.detail-copy small{color:#ca9266;font-size:8px;font-weight:800;letter-spacing:.18em}.detail-copy h3{margin:8px 0 0;color:#71122a;font-family:"Playfair Display",serif;font-size:clamp(2.7rem,4vw,4rem);font-weight:500;line-height:.95}.detail-copy strong{display:block;margin-top:7px;font-size:11px}.detail-copy p{color:#776e6a;font-size:12px;line-height:1.7;margin-top:16px}
-.gallery{padding:0 16px 16px}.photo-stage{position:relative;aspect-ratio:4/3;border-radius:20px;overflow:hidden;background:#f2ebe7}.photo{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transform:scale(1.04);transition:opacity .7s,transform 5.5s}.photo.active{opacity:1;transform:scale(1)}.count{position:absolute;right:12px;bottom:12px;background:rgba(15,10,12,.7);color:#fff;border-radius:999px;padding:7px 9px;font-size:8px}
-.controls{display:flex;align-items:center;justify-content:space-between;margin-top:10px}.controls>button{width:36px;height:36px;border-radius:50%;border:1px solid rgba(113,18,42,.15);background:#fff;color:#71122a}.dots{display:flex;gap:5px}.dots button{width:6px;height:6px;border:0;border-radius:10px;background:#d7ccc7;padding:0}.dots button.active{width:22px;background:#71122a}
-.empty{min-height:240px;border-radius:20px;background:#f8f2ef;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:#71122a;padding:30px}.empty strong{font-family:"Playfair Display",serif;font-size:24px;font-weight:500;margin-top:10px}.empty p{font-size:11px;color:#7a716d;max-width:270px}
-.tabs{margin-top:auto;display:grid;grid-template-columns:1fr 1fr;border-top:1px solid rgba(113,18,42,.08)}.tabs button{min-height:76px;padding:13px 16px;text-align:left;border:0;border-right:1px solid rgba(113,18,42,.08);border-bottom:1px solid rgba(113,18,42,.08);background:#fff}.tabs button:nth-child(even){border-right:0}.tabs span{display:block;font-size:7px;color:#a49a95;text-transform:uppercase;letter-spacing:.14em;font-weight:800}.tabs strong{display:block;margin-top:4px;font-family:"Playfair Display",serif;font-size:15px}.tabs button.active{background:#71122a;color:#fff}.tabs button.active span{color:#d9ad8b}
-.exp-final{padding:120px 20px;text-align:center;background:#130d0f}.exp-final small{color:#ca9266;letter-spacing:.2em;font-weight:800}.exp-final h2{font-family:"Playfair Display",serif;font-size:clamp(3rem,5vw,5.4rem);font-weight:500;line-height:.98;margin:18px auto}.exp-final h2 em{color:#e6b18a;font-weight:500}.exp-final p{max-width:560px;margin:auto;color:rgba(255,255,255,.6);font-size:13px;line-height:1.7}.exp-final a{display:inline-flex;gap:15px;margin-top:28px;padding:13px 18px;border:1px solid rgba(202,146,102,.35);border-radius:999px;font-size:11px}
-@media(max-width:1000px){.exp-grid{grid-template-columns:1fr}.map-card{min-height:560px}}
-@media(max-width:700px){.exp-head{height:66px;padding:0 14px;grid-template-columns:1fr auto}.exp-label,.exp-brand span{display:none}.exp-brand strong{font-size:18px}.exp-hero{min-height:90vh;padding:115px 20px 80px}.exp h1{font-size:clamp(3.5rem,18vw,5.2rem)}.exp-map-sec{padding:75px 12px 80px}.exp-intro{display:block}.exp-intro p{margin-top:18px}.map-card{min-height:430px;border-radius:20px}.world{min-height:340px}.world svg{inset:5% -8%;width:116%;height:90%}.map-bottom span:last-child{display:none}.detail{border-radius:20px}.detail-copy{padding:26px 22px}.exp-final{padding:85px 18px}}
+const routes = [
+  { startLat: -25.4284, startLng: -49.2733, endLat: 40.4168, endLng: -3.7038 },
+  { startLat: -25.4284, startLng: -49.2733, endLat: 38.7223, endLng: -9.1393 },
+  { startLat: -25.4284, startLng: -49.2733, endLat: 31.7683, endLng: 35.2137 },
+];
+
+const pageCss = `
+.world-exp{
+  --wine:#71122a;--copper:#ca9266;--cream:#f7f2ee;
+  min-height:100svh;background:#020307;color:#fff;
+  font-family:"DM Sans",Arial,sans-serif;overflow:hidden;
+}
+.world-exp *{box-sizing:border-box}
+.world-exp a{text-decoration:none;color:inherit}
+.world-head{
+  position:fixed;z-index:90;top:0;left:0;right:0;height:76px;
+  display:grid;grid-template-columns:1fr auto 1fr;align-items:center;
+  padding:0 clamp(18px,4vw,58px);
+  background:linear-gradient(to bottom,rgba(0,0,0,.82),rgba(0,0,0,.18),transparent);
+  pointer-events:none
+}
+.world-head>*{pointer-events:auto}
+.world-back{justify-self:start;display:flex;align-items:center;gap:8px;color:rgba(255,255,255,.72);font-size:12px;font-weight:700}
+.world-brand{text-align:center}
+.world-brand strong{display:block;font-family:"Playfair Display",Georgia,serif;font-size:22px;font-weight:500;letter-spacing:.04em}
+.world-brand span{display:block;margin-top:4px;color:var(--copper);font-size:7px;font-weight:800;letter-spacing:.18em}
+.world-head-tag{justify-self:end;color:rgba(255,255,255,.55);font-size:8px;font-weight:800;letter-spacing:.18em;text-transform:uppercase}
+
+.globe-hero{position:relative;height:100svh;min-height:720px;overflow:hidden;background:#020307}
+.globe-stage{position:absolute;inset:0;display:flex;justify-content:flex-end;align-items:center}
+.globe-canvas{width:min(78vw,1180px);height:100%;margin-right:-2vw;position:relative}
+.globe-canvas canvas{outline:none}
+.globe-vignette{position:absolute;inset:0;pointer-events:none;background:
+  linear-gradient(90deg,rgba(2,3,7,.98) 0%,rgba(2,3,7,.74) 23%,rgba(2,3,7,.16) 45%,transparent 67%),
+  linear-gradient(0deg,rgba(2,3,7,.9),transparent 22%,transparent 78%,rgba(2,3,7,.55))}
+.globe-copy{position:absolute;z-index:15;left:clamp(24px,6vw,96px);top:50%;transform:translateY(-50%);width:min(410px,36vw)}
+.globe-kicker{display:flex;align-items:center;gap:10px;color:var(--copper);font-size:9px;letter-spacing:.23em;font-weight:800;text-transform:uppercase}
+.globe-copy h1{margin:18px 0 20px;font-family:"Playfair Display",Georgia,serif;font-size:clamp(3.2rem,5vw,5.8rem);font-weight:500;line-height:.92;letter-spacing:-.035em}
+.globe-copy h1 em{color:#e6b18a;font-weight:500}
+.globe-copy p{max-width:380px;margin:0;color:rgba(255,255,255,.62);font-size:13px;line-height:1.75}
+.globe-hint{display:flex;align-items:center;gap:9px;margin-top:28px;color:rgba(255,255,255,.72);font-size:10px;font-weight:700}
+.globe-hint i{width:7px;height:7px;border-radius:50%;background:var(--copper);box-shadow:0 0 0 7px rgba(202,146,102,.12);animation:hintPulse 2s infinite}
+@keyframes hintPulse{50%{box-shadow:0 0 0 13px rgba(202,146,102,0)}}
+
+.location-strip{
+  position:absolute;z-index:20;left:50%;bottom:26px;transform:translateX(-50%);
+  display:flex;gap:6px;max-width:calc(100% - 40px);padding:6px;
+  border:1px solid rgba(255,255,255,.11);border-radius:999px;
+  background:rgba(9,10,13,.68);backdrop-filter:blur(16px);overflow:auto
+}
+.location-strip button{
+  border:0;border-radius:999px;background:transparent;color:rgba(255,255,255,.62);
+  padding:10px 14px;white-space:nowrap;font-size:9px;font-weight:800;letter-spacing:.04em;transition:.2s
+}
+.location-strip button:hover,.location-strip button.active{background:rgba(202,146,102,.16);color:#fff}
+.location-strip button.active{box-shadow:inset 0 0 0 1px rgba(202,146,102,.32)}
+
+.location-panel{
+  position:fixed;z-index:100;right:24px;top:94px;bottom:24px;width:min(390px,calc(100vw - 32px));
+  display:flex;flex-direction:column;overflow:hidden;
+  border:1px solid rgba(255,255,255,.13);border-radius:26px;
+  background:rgba(15,12,14,.82);box-shadow:0 34px 90px rgba(0,0,0,.48);
+  backdrop-filter:blur(24px);animation:panelIn .35s ease
+}
+@keyframes panelIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:none}}
+.panel-close{
+  position:absolute;z-index:5;right:14px;top:14px;width:38px;height:38px;display:grid;place-items:center;
+  border:1px solid rgba(255,255,255,.12);border-radius:50%;background:rgba(0,0,0,.28);color:#fff
+}
+.panel-copy{padding:30px 30px 22px}
+.panel-copy small{color:var(--copper);font-size:8px;letter-spacing:.18em;font-weight:800}
+.panel-copy h2{margin:10px 0 3px;font-family:"Playfair Display",Georgia,serif;font-size:3.4rem;line-height:.94;font-weight:500}
+.panel-copy strong{display:block;color:rgba(255,255,255,.72);font-size:10px}
+.panel-copy p{margin:16px 0 0;color:rgba(255,255,255,.58);font-size:11px;line-height:1.68}
+
+.panel-gallery{padding:0 14px 14px;min-height:0}
+.panel-photo{position:relative;aspect-ratio:4/3;border-radius:18px;overflow:hidden;background:rgba(255,255,255,.05)}
+.panel-photo img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transform:scale(1.035);transition:opacity .65s,transform 5.4s}
+.panel-photo img.active{opacity:1;transform:scale(1)}
+.panel-counter{position:absolute;right:11px;bottom:11px;padding:7px 9px;border-radius:999px;background:rgba(0,0,0,.62);font-size:8px;font-weight:800}
+.panel-empty{aspect-ratio:4/3;border-radius:18px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;background:linear-gradient(145deg,rgba(113,18,42,.24),rgba(202,146,102,.08));color:#fff}
+.panel-empty b{font-family:"Playfair Display",serif;font-size:22px;font-weight:500}
+.panel-empty span{margin-top:7px;color:rgba(255,255,255,.5);font-size:10px}
+.panel-controls{display:flex;align-items:center;justify-content:space-between;margin-top:10px}
+.panel-controls>button{width:36px;height:36px;display:grid;place-items:center;border:1px solid rgba(255,255,255,.12);border-radius:50%;background:rgba(255,255,255,.06);color:#fff}
+.panel-dots{display:flex;gap:5px}.panel-dots button{width:6px;height:6px;padding:0;border:0;border-radius:10px;background:rgba(255,255,255,.24)}.panel-dots button.active{width:22px;background:var(--copper)}
+.panel-footer{margin-top:auto;padding:18px 28px;border-top:1px solid rgba(255,255,255,.09);display:flex;align-items:center;gap:8px;color:rgba(255,255,255,.5);font-size:9px}
+
+@media(max-width:900px){
+  .world-head{grid-template-columns:1fr auto}.world-head-tag{display:none}.world-brand{justify-self:end}.world-brand span{display:none}
+  .globe-hero{min-height:700px}.globe-copy{top:130px;transform:none;left:20px;width:min(390px,calc(100% - 40px));pointer-events:none}
+  .globe-copy h1{font-size:clamp(3rem,11vw,4.7rem)}.globe-copy p{max-width:320px}
+  .globe-stage{align-items:flex-end;justify-content:center}.globe-canvas{width:120vw;height:75vh;margin:0 0 -4vh}
+  .globe-vignette{background:linear-gradient(180deg,rgba(2,3,7,.88) 0%,rgba(2,3,7,.3) 35%,transparent 60%,rgba(2,3,7,.42) 100%)}
+  .location-strip{bottom:14px}
+  .location-panel{top:auto;right:10px;left:10px;bottom:10px;width:auto;max-height:62vh;border-radius:22px}
+  .panel-copy{padding:24px 24px 18px}.panel-copy h2{font-size:2.7rem}.panel-photo,.panel-empty{aspect-ratio:16/9}
+}
+@media(max-width:520px){
+  .globe-copy p{display:none}.globe-hint{margin-top:18px}.globe-copy{top:105px}
+  .globe-canvas{width:145vw;height:72vh;margin-bottom:1vh}.location-strip{width:calc(100% - 24px)}
+}
 `;
 
 export default function Experiencias() {
-  const [id, setId] = useState("brasil");
-  const [foto, setFoto] = useState(0);
-  const local = locais.find((item) => item.id === id) || locais[0];
-  const fotos = imagensDaPasta(local.pasta);
+  const globeRef = useRef<any>(null);
+  const wrapRef = useRef<HTMLDivElement | null>(null);
+  const [size, setSize] = useState({ width: 900, height: 760 });
+  const [selected, setSelected] = useState<Destination | null>(null);
+  const [photoIndex, setPhotoIndex] = useState(0);
 
   useEffect(() => {
-    document.title = "ExperiÃªncias | Dra. Andressa Dallarmi";
-    window.scrollTo(0, 0);
+    document.title = "Experi\u00eancias | Dra. Andressa Dallarmi";
   }, []);
 
-  useEffect(() => setFoto(0), [id]);
+  useEffect(() => {
+    if (!wrapRef.current) return;
+    const element = wrapRef.current;
+
+    const update = () => {
+      setSize({
+        width: Math.max(320, element.clientWidth),
+        height: Math.max(500, element.clientHeight),
+      });
+    };
+
+    update();
+    const observer = new ResizeObserver(update);
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
-    if (fotos.length < 2) return;
-    const timer = window.setInterval(
-      () => setFoto((atual) => (atual + 1) % fotos.length),
-      5500
-    );
-    return () => window.clearInterval(timer);
-  }, [fotos.length, id]);
+    const timer = window.setTimeout(() => {
+      const globe = globeRef.current;
+      if (!globe) return;
+      const controls = globe.controls();
+      controls.autoRotate = true;
+      controls.autoRotateSpeed = 0.45;
+      controls.enableDamping = true;
+      controls.dampingFactor = 0.06;
+      globe.pointOfView({ lat: 15, lng: -20, altitude: 2.15 }, 0);
+    }, 250);
+    return () => window.clearTimeout(timer);
+  }, []);
 
-  const anterior = () =>
-    fotos.length &&
-    setFoto((atual) => (atual - 1 + fotos.length) % fotos.length);
-  const proxima = () =>
-    fotos.length && setFoto((atual) => (atual + 1) % fotos.length);
+  const photos = selected ? imagensDaPasta(selected.folder) : [];
+
+  useEffect(() => {
+    setPhotoIndex(0);
+  }, [selected?.id]);
+
+  useEffect(() => {
+    if (!selected || photos.length < 2) return;
+    const timer = window.setInterval(() => {
+      setPhotoIndex((current) => (current + 1) % photos.length);
+    }, 5200);
+    return () => window.clearInterval(timer);
+  }, [selected?.id, photos.length]);
+
+  const focusDestination = (destination: Destination) => {
+    setSelected(destination);
+    setPhotoIndex(0);
+
+    const globe = globeRef.current;
+    if (globe) {
+      globe.controls().autoRotate = false;
+      globe.pointOfView(
+        { lat: destination.lat, lng: destination.lng, altitude: 1.55 },
+        1100
+      );
+    }
+  };
+
+  const closePanel = () => {
+    setSelected(null);
+    const globe = globeRef.current;
+    if (globe) {
+      globe.controls().autoRotate = true;
+      globe.pointOfView({ lat: 15, lng: -20, altitude: 2.15 }, 900);
+    }
+  };
+
+  const ringData = useMemo(() => destinations, []);
 
   return (
-    <div className="exp">
-      <style>{css}</style>
+    <div className="world-exp">
+      <style>{pageCss}</style>
 
-      <header className="exp-head">
-        <a className="exp-back" href="/">
-          <ArrowLeft size={17} /> Voltar ao site
+      <header className="world-head">
+        <a className="world-back" href="/">
+          <ArrowLeft size={16} />
+          Voltar ao site
         </a>
-        <a className="exp-brand" href="/">
+
+        <a className="world-brand" href="/">
           <strong>DALL'ARMI</strong>
-          <span>CLÃNICA MÃ‰DICA & CIRÃšRGICA</span>
+          <span>CL&Iacute;NICA M&Eacute;DICA &amp; CIR&Uacute;RGICA</span>
         </a>
-        <span className="exp-label">ExperiÃªncias</span>
+
+        <span className="world-head-tag">Experi&ecirc;ncias pelo mundo</span>
       </header>
 
-      <section className="exp-hero">
-        <div className="exp-copy">
-          <span className="exp-kicker">
-            <Plane size={15} /> EXPERIÃŠNCIAS & TRAJETÃ“RIA
+      <main className="globe-hero">
+        <div className="globe-stage">
+          <div className="globe-canvas" ref={wrapRef}>
+            <Globe
+              ref={globeRef}
+              width={size.width}
+              height={size.height}
+              backgroundColor="#020307"
+              backgroundImageUrl="https://unpkg.com/three-globe/example/img/night-sky.png"
+              globeImageUrl="https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg"
+              bumpImageUrl="https://unpkg.com/three-globe/example/img/earth-topology.png"
+              showAtmosphere
+              atmosphereColor="#8bc6ff"
+              atmosphereAltitude={0.18}
+              pointsData={destinations}
+              pointLat="lat"
+              pointLng="lng"
+              pointAltitude={0.018}
+              pointRadius={0.28}
+              pointColor={(point: any) =>
+                selected?.id === point.id ? "#ffffff" : "#ca9266"
+              }
+              onPointClick={(point: any) => focusDestination(point as Destination)}
+              labelsData={destinations}
+              labelLat="lat"
+              labelLng="lng"
+              labelText="label"
+              labelAltitude={0.03}
+              labelSize={0.58}
+              labelDotRadius={0.18}
+              labelColor={() => "rgba(255,255,255,.88)"}
+              labelResolution={3}
+              onLabelClick={(label: any) => focusDestination(label as Destination)}
+              ringsData={ringData}
+              ringLat="lat"
+              ringLng="lng"
+              ringColor={() => "rgba(202,146,102,.72)"}
+              ringMaxRadius={2.4}
+              ringPropagationSpeed={1.1}
+              ringRepeatPeriod={1300}
+              arcsData={routes}
+              arcStartLat="startLat"
+              arcStartLng="startLng"
+              arcEndLat="endLat"
+              arcEndLng="endLng"
+              arcColor={() => ["rgba(202,146,102,.78)", "rgba(255,255,255,.22)"]}
+              arcAltitudeAutoScale={0.35}
+              arcStroke={0.45}
+              arcDashLength={0.42}
+              arcDashGap={0.75}
+              arcDashAnimateTime={3200}
+              onGlobeClick={() => selected && closePanel()}
+            />
+          </div>
+        </div>
+
+        <div className="globe-vignette" />
+
+        <section className="globe-copy">
+          <span className="globe-kicker">
+            <MapPin size={14} />
+            EXPERI&Ecirc;NCIAS INTERNACIONAIS
           </span>
+
           <h1>
-            Uma trajetÃ³ria que
+            Uma trajet&oacute;ria
             <br />
-            <em>atravessa fronteiras.</em>
+            <em>pelo mundo.</em>
           </h1>
-          <p>
-            Explore alguns dos lugares que fazem parte da atuaÃ§Ã£o e das
-            experiÃªncias profissionais da Dra. Andressa Dallarmi.
-          </p>
-          <a className="exp-jump" href="#mapa">
-            Explorar o mapa <span>â†“</span>
-          </a>
-        </div>
-      </section>
 
-      <section className="exp-map-sec" id="mapa">
-        <div className="exp-intro">
-          <div>
-            <small>MAPA DE EXPERIÃŠNCIAS</small>
-            <h2>Escolha um destino.</h2>
+          <p>
+            Explore o globo e conhe&ccedil;a os lugares que fazem parte da
+            trajet&oacute;ria profissional da Dra. Andressa Dallarmi.
+          </p>
+
+          <div className="globe-hint">
+            <i />
+            Arraste o globo e clique nos pontos iluminados
           </div>
-          <p>
-            Clique nos pontos destacados para conhecer cada local e navegar
-            pelos registros da trajetÃ³ria da Dra. Andressa.
-          </p>
+        </section>
+
+        <div className="location-strip" aria-label="Destinos">
+          {destinations.map((destination) => (
+            <button
+              key={destination.id}
+              type="button"
+              className={selected?.id === destination.id ? "active" : ""}
+              onClick={() => focusDestination(destination)}
+            >
+              {destination.label}
+            </button>
+          ))}
         </div>
+      </main>
 
-        <div className="exp-grid">
-          <div className="map-card">
-            <div className="map-top">
-              <span>TRAJETÃ“RIA INTERNACIONAL</span>
-              <span>4 DESTINOS</span>
-            </div>
+      {selected && (
+        <aside className="location-panel">
+          <button
+            type="button"
+            className="panel-close"
+            onClick={closePanel}
+            aria-label="Fechar"
+          >
+            <X size={17} />
+          </button>
 
-            <div className="world">
-              <svg viewBox="0 0 1000 500" aria-label="Mapa-mÃºndi">
-                <g className="grid">
-                  <path d="M0 125H1000M0 250H1000M0 375H1000M250 0V500M500 0V500M750 0V500" />
-                </g>
-                <g className="land">
-                  <path d="M86 92c39-42 88-56 137-44 37 9 61 29 92 36 26 7 53 2 72 21 18 18 5 39-18 46-30 9-58 5-76 27-15 18-18 50-43 58-32 10-45-26-70-38-29-14-73-12-92-42-12-20-16-45-2-64Z" />
-                  <path d="M287 231c31-11 64 6 82 31 15 21 17 48 9 73-8 26-24 48-31 75-7 28-7 62-29 83-15-13-19-35-27-53-10-23-25-43-30-68-7-33 1-68 9-100 4-16 4-31 17-41Z" />
-                  <path d="M432 91c20-18 47-21 69-12 13 6 25 16 40 15 25-2 46-17 72-14 25 3 43 21 65 30 29 12 62 9 92 21 28 11 55 33 60 64 4 23-8 47-29 56-20 9-43 5-64 5-31 0-63 11-94 7-23-3-43-17-67-16-20 1-38 14-58 12-24-2-36-24-48-43-13-22-35-36-46-60-9-20-9-48 8-65Z" />
-                  <path d="M493 220c31-6 67 7 84 34 15 24 12 53 4 80-9 31-20 63-39 89-14 20-37 39-62 31-22-7-30-34-34-56-5-28-5-58 1-86 7-33 13-80 46-92Z" />
-                  <path d="M801 317c20-18 49-22 73-12 24 10 43 35 35 60-8 24-36 33-60 35-23 2-51-4-62-25-10-19-2-43 14-58Z" />
-                </g>
-              </svg>
-
-              {locais.map((item) => (
-                <button
-                  key={item.id}
-                  type="button"
-                  className={"pin " + (item.id === id ? "active" : "")}
-                  style={{ left: item.left, top: item.top }}
-                  onClick={() => setId(item.id)}
-                >
-                  <b>{item.lugar}</b>
-                </button>
-              ))}
-            </div>
-
-            <div className="map-bottom">
-              <span><MapPin size={14} /> Clique em um ponto</span>
-              <span>Dra. Andressa Dallarmi</span>
-            </div>
+          <div className="panel-copy">
+            <small>{selected.region.toUpperCase()}</small>
+            <h2>{selected.label}</h2>
+            <strong>{selected.country}</strong>
+            <p>{selected.description}</p>
           </div>
 
-          <aside className="detail">
-            <div className="detail-copy">
-              <small>EXPERIÃŠNCIA PROFISSIONAL</small>
-              <h3>{local.lugar}</h3>
-              <strong>{local.pais}</strong>
-              <p>{local.texto}</p>
-            </div>
-
-            <div className="gallery">
-              {fotos.length ? (
-                <>
-                  <div className="photo-stage">
-                    {fotos.map((src, index) => (
-                      <img
-                        key={src}
-                        src={src}
-                        alt={"Dra. Andressa em " + local.lugar}
-                        className={"photo " + (index === foto ? "active" : "")}
-                      />
-                    ))}
-                    <span className="count">
-                      {String(foto + 1).padStart(2, "0")} / {String(fotos.length).padStart(2, "0")}
-                    </span>
-                  </div>
-
-                  {fotos.length > 1 && (
-                    <div className="controls">
-                      <button onClick={anterior} aria-label="Foto anterior">
-                        <ChevronLeft size={18} />
-                      </button>
-                      <div className="dots">
-                        {fotos.map((_, index) => (
-                          <button
-                            key={index}
-                            className={index === foto ? "active" : ""}
-                            onClick={() => setFoto(index)}
-                            aria-label={"Foto " + (index + 1)}
-                          />
-                        ))}
-                      </div>
-                      <button onClick={proxima} aria-label="PrÃ³xima foto">
-                        <ChevronRight size={18} />
-                      </button>
-                    </div>
-                  )}
-                </>
-              ) : (
-                <div className="empty">
-                  <Sparkles size={24} />
-                  <strong>Galeria em atualizaÃ§Ã£o</strong>
-                  <p>Novos registros de {local.lugar} serÃ£o adicionados em breve.</p>
+          <div className="panel-gallery">
+            {photos.length ? (
+              <>
+                <div className="panel-photo">
+                  {photos.map((src, index) => (
+                    <img
+                      key={src}
+                      src={src}
+                      alt={`${selected.label} - Dra. Andressa Dallarmi`}
+                      className={index === photoIndex ? "active" : ""}
+                    />
+                  ))}
+                  <span className="panel-counter">
+                    {String(photoIndex + 1).padStart(2, "0")} /{" "}
+                    {String(photos.length).padStart(2, "0")}
+                  </span>
                 </div>
-              )}
-            </div>
 
-            <div className="tabs">
-              {locais.map((item) => (
-                <button
-                  key={item.id}
-                  type="button"
-                  className={item.id === id ? "active" : ""}
-                  onClick={() => setId(item.id)}
-                >
-                  <span>{item.pais}</span>
-                  <strong>{item.lugar}</strong>
-                </button>
-              ))}
-            </div>
-          </aside>
-        </div>
-      </section>
+                {photos.length > 1 && (
+                  <div className="panel-controls">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setPhotoIndex(
+                          (photoIndex - 1 + photos.length) % photos.length
+                        )
+                      }
+                      aria-label="Foto anterior"
+                    >
+                      <ChevronLeft size={18} />
+                    </button>
 
-      <section className="exp-final">
-        <small>UMA TRAJETÃ“RIA EM MOVIMENTO</small>
-        <h2>
-          TÃ©cnica, repertÃ³rio e cuidado
-          <br />
-          <em>construÃ­dos em diferentes lugares.</em>
-        </h2>
-        <p>
-          Cada experiÃªncia acrescenta uma nova perspectiva ao planejamento e
-          ao cuidado individualizado.
-        </p>
-        <a href="/">Voltar para a ClÃ­nica Dall'Armi <span>â†’</span></a>
-      </section>
+                    <div className="panel-dots">
+                      {photos.map((_, index) => (
+                        <button
+                          key={index}
+                          type="button"
+                          className={index === photoIndex ? "active" : ""}
+                          onClick={() => setPhotoIndex(index)}
+                          aria-label={`Ver foto ${index + 1}`}
+                        />
+                      ))}
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setPhotoIndex((photoIndex + 1) % photos.length)
+                      }
+                      aria-label="Pr\u00f3xima foto"
+                    >
+                      <ChevronRight size={18} />
+                    </button>
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="panel-empty">
+                <b>Galeria em atualiza&ccedil;&atilde;o</b>
+                <span>As fotos deste destino ser&atilde;o adicionadas aqui.</span>
+              </div>
+            )}
+          </div>
+
+          <div className="panel-footer">
+            <MapPin size={14} />
+            Dra. Andressa Dallarmi &middot; Experi&ecirc;ncias
+          </div>
+        </aside>
+      )}
     </div>
   );
 }
