@@ -91,7 +91,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           <div className="footer-brand">
             <div className="footer-brand-wordmark-30b" aria-label="Dra. Andressa Dallarmi">
               <strong>Dra. Andressa Dallarmi</strong>
-              <span>Cirurgia Geral &amp; EstÃ©tica</span>
+              <span>Cirurgia Geral &amp; Estética</span>
             </div>
             <p>Atendimento médico com planejamento individualizado, segurança e acompanhamento próximo.</p>
           </div>

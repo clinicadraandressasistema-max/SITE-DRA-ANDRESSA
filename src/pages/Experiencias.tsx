@@ -1,4 +1,4 @@
-﻿import { ArrowLeft, ChevronLeft, ChevronRight, MapPin, X } from "lucide-react";
+import { ArrowLeft, ChevronLeft, ChevronRight, MapPin, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import Globe from "react-globe.gl";
 import { imagensDaPasta } from "../lib/media";

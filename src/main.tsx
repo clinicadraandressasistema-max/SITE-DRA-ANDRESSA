@@ -1,4 +1,4 @@
-﻿import { StrictMode } from 'react'
+import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import App from './App'
@@ -19,7 +19,7 @@ createRoot(document.getElementById('root')!).render(
         <>
           <a
             href="/"
-            aria-label="Voltar para o site da ClÃ­nica Dall'Armi"
+            aria-label="Voltar para o site da Clínica Dall'Armi"
             style={{
               position: "fixed", top: "18px", left: "18px", zIndex: 99999,
               display: "inline-flex", alignItems: "center", gap: "8px",
@@ -32,7 +32,7 @@ createRoot(document.getElementById('root')!).render(
               border: "1px solid rgba(113,21,29,0.12)"
             }}
           >
-            â† Voltar para o site
+            ← Voltar para o site
           </a>
           <Booking />
         </>
