@@ -1,4 +1,4 @@
-import { imagensDaPasta, pastaEspecialidade } from "./lib/media";
+﻿import { imagensDaPasta, pastaEspecialidade } from "./lib/media";
 import SpecialtyModal from "./components/SpecialtyModal";
 import { useEffect, useState } from "react";
 import { clinicConfig } from "./config";
@@ -11,12 +11,12 @@ import {
 const especialidades = [
   {
     nome: "Cirurgia Geral",
-    texto: "Avaliação, acompanhamento e cuidado cirúrgico individualizado.",
+    texto: "AvaliaÃ§Ã£o, acompanhamento e cuidado cirÃºrgico individualizado.",
     imagem: "/media/images/servicos/cirurgia-geral.png",
   },
   {
     nome: "Tricologia",
-    texto: "Cuidado médico voltado à saúde dos cabelos e couro cabeludo.",
+    texto: "Cuidado mÃ©dico voltado Ã  saÃºde dos cabelos e couro cabeludo.",
     imagem: "/media/images/servicos/tricologia.png",
   },
   {
@@ -26,7 +26,7 @@ const especialidades = [
   },
   {
     nome: "Barba e Sobrancelhas",
-    texto: "Restauração planejada respeitando características individuais.",
+    texto: "RestauraÃ§Ã£o planejada respeitando caracterÃ­sticas individuais.",
     imagem: "/media/images/servicos/barba-sobrancelha.png",
   },
 ];
@@ -63,7 +63,7 @@ function App() {
     : fallbackSlides;
 
   useEffect(() => {
-    document.title = "Clínica Dall'Armi | Clínica Médica & Cirúrgica";
+    document.title = "ClÃ­nica Dall'Armi | ClÃ­nica MÃ©dica & CirÃºrgica";
   }, []);
 
   useEffect(() => {
@@ -115,16 +115,17 @@ function App() {
         <div className="container header-inner">
           <a href="#inicio" className="brand">
             <strong>DALL'ARMI</strong>
-            <span>CLÍNICA MÉDICA & CIRÚRGICA</span>
+            <span>CLÃNICA MÃ‰DICA & CIRÃšRGICA</span>
           </a>
 
           <nav className={menuOpen ? "nav nav-open" : "nav"}>
-            <a href="#inicio" onClick={() => setMenuOpen(false)}>Início</a>
-            <a href="#clinica" onClick={() => setMenuOpen(false)}>A Clínica</a>
+            <a href="#inicio" onClick={() => setMenuOpen(false)}>InÃ­cio</a>
+            <a href="#clinica" onClick={() => setMenuOpen(false)}>A ClÃ­nica</a>
             <a href="#especialidades" onClick={() => setMenuOpen(false)}>Especialidades</a>
             <a href="#transplante" onClick={() => setMenuOpen(false)}>Transplante Capilar</a>
-            <a href="#equipe" onClick={() => setMenuOpen(false)}>Corpo Clínico</a>
-            <a href="#atendimento" onClick={() => setMenuOpen(false)}>Convênios</a>
+            <a href="#equipe" onClick={() => setMenuOpen(false)}>Corpo ClÃ­nico</a>
+            <a href="/experiencias" onClick={() => setMenuOpen(false)}>ExperiÃªncias</a>
+            <a href="#atendimento" onClick={() => setMenuOpen(false)}>ConvÃªnios</a>
             <a
               href="#contato"
               onClick={(event) => {
@@ -192,20 +193,20 @@ function App() {
                 )
               }
             >
-              ‹
+              â€¹
             </button>
 
             <button
               className="carousel-arrow carousel-arrow-right"
               type="button"
-              aria-label="Próxima imagem"
+              aria-label="PrÃ³xima imagem"
               onClick={() =>
                 setCurrentSlide(
                   (currentSlide + 1) % heroSlides.length
                 )
               }
             >
-              ›
+              â€º
             </button>
 
             <div className="carousel-dots" aria-label="Imagens do banner">
@@ -229,24 +230,24 @@ function App() {
         <section className="intro" id="clinica">
           <div className="container intro-grid">
             <div>
-              <p className="overline">CLÍNICA DALL'ARMI</p>
+              <p className="overline">CLÃNICA DALL'ARMI</p>
 
               <h2>
                 Medicina com cuidado,
                 <br />
-                <em>segurança e atenção.</em>
+                <em>seguranÃ§a e atenÃ§Ã£o.</em>
               </h2>
             </div>
 
             <div className="intro-copy">
               <p>
-                Uma clínica pensada para oferecer uma experiência médica
+                Uma clÃ­nica pensada para oferecer uma experiÃªncia mÃ©dica
                 organizada, acolhedora e individualizada, reunindo diferentes
-                áreas do cuidado em um mesmo ambiente.
+                Ã¡reas do cuidado em um mesmo ambiente.
               </p>
 
               <a href="#contato">
-                Conheça a Clínica Dall'Armi <span>→</span>
+                ConheÃ§a a ClÃ­nica Dall'Armi <span>â†’</span>
               </a>
             </div>
           </div>
@@ -259,14 +260,14 @@ function App() {
                 <p className="overline">ESPECIALIDADES E TRATAMENTOS</p>
 
                 <h2>
-                  Saúde em todas
+                  SaÃºde em todas
                   <br />
                   as etapas <em>da sua vida.</em>
                 </h2>
               </div>
 
               <p>
-                Cuidado médico personalizado, da avaliação aos tratamentos
+                Cuidado mÃ©dico personalizado, da avaliaÃ§Ã£o aos tratamentos
                 especializados.
               </p>
             </div>
@@ -282,14 +283,14 @@ function App() {
                     <span className="specialty-mark">+</span>
                     <h3>{item.nome}</h3>
                     <p>{item.texto}</p>
-                    <button className="dsm-open" type="button" onClick={() => setEspecialidadeAberta(item.nome)}>Saiba mais <span>→</span></button>
+                    <button className="dsm-open" type="button" onClick={() => setEspecialidadeAberta(item.nome)}>Saiba mais <span>â†’</span></button>
                   </div>
                 </article>
               ))}
             </div>
 
             <div className="specialty-bottom">
-              <button className="simple-link dsm-open" type="button" onClick={() => setEspecialidadeAberta("__catalogo__")}>Ver todas as especialidades <span>→</span></button>
+              <button className="simple-link dsm-open" type="button" onClick={() => setEspecialidadeAberta("__catalogo__")}>Ver todas as especialidades <span>â†’</span></button>
             </div>
           </div>
         </section>
@@ -299,16 +300,16 @@ function App() {
         <section className="hair" id="transplante">
           <div className="container hair-grid">
             <div className="hair-copy">
-              <p className="overline">RESTAURAÇÃO CAPILAR</p>
+              <p className="overline">RESTAURAÃ‡ÃƒO CAPILAR</p>
 
               <h2>
-                Naturalidade começa
+                Naturalidade comeÃ§a
                 <br />
                 com um bom <em>planejamento.</em>
               </h2>
 
               <p>
-                Avaliação individualizada, planejamento médico e acompanhamento
+                AvaliaÃ§Ã£o individualizada, planejamento mÃ©dico e acompanhamento
                 em todas as etapas do tratamento.
               </p>
 
@@ -319,15 +320,15 @@ function App() {
               </div>
 
               <a className="btn btn-wine" href="#contato">
-                Conheça a restauração capilar
-                <span>→</span>
+                ConheÃ§a a restauraÃ§Ã£o capilar
+                <span>â†’</span>
               </a>
             </div>
 
             <div className="hair-photo">
               <img
                 src={imagensDaPasta("home/transplante")[0] || "/media/images/servicos/transplante-capilar.png"}
-                alt="Restauração e transplante capilar"
+                alt="RestauraÃ§Ã£o e transplante capilar"
               />
               <div className="hair-circle" />
             </div>
@@ -344,7 +345,7 @@ function App() {
             </div>
 
             <div className="doctor-copy">
-              <p className="overline">CORPO CLÍNICO</p>
+              <p className="overline">CORPO CLÃNICO</p>
 
               <h2>
                 Dra. Andressa
@@ -353,26 +354,26 @@ function App() {
               </h2>
 
               <p className="doctor-role">
-                Médica Cirurgiã
+                MÃ©dica CirurgiÃ£
                 <br />
                 CRM 28292-PR | RQE 2826
               </p>
 
               <p>
-                Atua em Cirurgia Geral, Tricologia, Restauração Capilar,
+                Atua em Cirurgia Geral, Tricologia, RestauraÃ§Ã£o Capilar,
                 Transplante Capilar, Transplante de Barba e Transplante de
                 Sobrancelhas.
               </p>
 
               <p>
-                Graduação em Medicina pela Faculdade Evangélica Mackenzie do
-                Paraná, residência médica em Cirurgia Geral pelo HONPAR e
-                pós-graduação em Tricologia e Transplante Capilar.
+                GraduaÃ§Ã£o em Medicina pela Faculdade EvangÃ©lica Mackenzie do
+                ParanÃ¡, residÃªncia mÃ©dica em Cirurgia Geral pelo HONPAR e
+                pÃ³s-graduaÃ§Ã£o em Tricologia e Transplante Capilar.
               </p>
 
               <div className="doctor-actions">
-                <a className="btn btn-light" href="#contato">
-                  Conheça a Dra. Andressa
+                <a className="btn btn-light" href="/experiencias">
+                  ConheÃ§a a Dra. Andressa
                 </a>
 
                 <button
@@ -393,25 +394,25 @@ function App() {
             <div>
               <span>01</span>
               <strong>Atendimento humanizado</strong>
-              <p>Você no centro do cuidado.</p>
+              <p>VocÃª no centro do cuidado.</p>
             </div>
 
             <div>
               <span>02</span>
-              <strong>Avaliação individualizada</strong>
-              <p>Cada paciente é único.</p>
+              <strong>AvaliaÃ§Ã£o individualizada</strong>
+              <p>Cada paciente Ã© Ãºnico.</p>
             </div>
 
             <div>
               <span>03</span>
-              <strong>Segurança médica</strong>
+              <strong>SeguranÃ§a mÃ©dica</strong>
               <p>Responsabilidade em cada etapa.</p>
             </div>
 
             <div>
               <span>04</span>
               <strong>Cuidado integrado</strong>
-              <p>Saúde de forma completa.</p>
+              <p>SaÃºde de forma completa.</p>
             </div>
           </div>
         </section>
@@ -431,7 +432,7 @@ function App() {
             <div className="attendance-main">
               <span>ATENDIMENTO ATUAL</span>
               <h3>Particular</h3>
-              <p>Atendimento particular com agendamento prévio.</p>
+              <p>Atendimento particular com agendamento prÃ©vio.</p>
 
               <button
                 className="btn btn-wine"
@@ -444,14 +445,14 @@ function App() {
 
           <div className="container insurance-empty">
             <div>
-              <strong>Convênios e parceiros</strong>
+              <strong>ConvÃªnios e parceiros</strong>
               <p>
-                Novos convênios poderão ser disponibilizados em breve.
+                Novos convÃªnios poderÃ£o ser disponibilizados em breve.
                 Consulte nossa equipe.
               </p>
             </div>
 
-            <span>Em atualização</span>
+            <span>Em atualizaÃ§Ã£o</span>
           </div>
         </section>
 
@@ -460,16 +461,16 @@ function App() {
         <section className="final-cta">
           <div className="container final-box">
             <div>
-              <p className="overline">SUA SAÚDE EM BOAS MÃOS</p>
+              <p className="overline">SUA SAÃšDE EM BOAS MÃƒOS</p>
 
               <h2>
                 Um cuidado pensado
                 <br />
-                <em>para você.</em>
+                <em>para vocÃª.</em>
               </h2>
 
               <p>
-                Fale com nossa equipe para informações sobre consultas,
+                Fale com nossa equipe para informaÃ§Ãµes sobre consultas,
                 tratamentos e agendamentos.
               </p>
 
@@ -478,7 +479,7 @@ function App() {
                 onClick={() => setBookingOpen(true)}
               >
                 Agende sua consulta
-                <span>→</span>
+                <span>â†’</span>
               </button>
             </div>
 
@@ -504,17 +505,18 @@ function App() {
         <div className="container footer-grid">
           <div className="footer-brand">
             <strong>DALL'ARMI</strong>
-            <span>CLÍNICA MÉDICA & CIRÚRGICA</span>
+            <span>CLÃNICA MÃ‰DICA & CIRÃšRGICA</span>
             <p>Medicina, cirurgia e cuidado individualizado.</p>
           </div>
 
           <div className="footer-links">
-            <strong>Navegação</strong>
-            <a href="#inicio">Início</a>
-            <a href="#clinica">A Clínica</a>
+            <strong>NavegaÃ§Ã£o</strong>
+            <a href="#inicio">InÃ­cio</a>
+            <a href="#clinica">A ClÃ­nica</a>
             <a href="#especialidades">Especialidades</a>
             <a href="#transplante">Transplante Capilar</a>
-            <a href="#equipe">Corpo Clínico</a>
+            <a href="#equipe">Corpo ClÃ­nico</a>
+            <a href="/experiencias">ExperiÃªncias</a>
           </div>
 
           <div className="footer-links">
@@ -522,7 +524,7 @@ function App() {
             <button onClick={() => setBookingOpen(true)}>
               Agende sua consulta
             </button>
-            <a href="#atendimento">Convênios</a>
+            <a href="#atendimento">ConvÃªnios</a>
           </div>
 
           <div className="footer-links footer-contact-actions">
@@ -543,14 +545,14 @@ function App() {
             {!clinicConfig.phone &&
               !clinicConfig.email &&
               !clinicConfig.address && (
-                <span>Dados em configuração</span>
+                <span>Dados em configuraÃ§Ã£o</span>
               )}
           </div>
         </div>
 
         <div className="container footer-bottom">
-          <span>DALL'ARMI – Clínica Médica & Cirúrgica</span>
-          <span>Cuidar de você é a nossa especialidade.</span>
+          <span>DALL'ARMI â€“ ClÃ­nica MÃ©dica & CirÃºrgica</span>
+          <span>Cuidar de vocÃª Ã© a nossa especialidade.</span>
         </div>
       </footer>
 
@@ -567,7 +569,7 @@ function App() {
               onClick={() => setBookingOpen(false)}
               aria-label="Fechar"
             >
-              ×
+              Ã—
             </button>
 
             <p className="overline">AGENDAMENTO</p>
@@ -589,7 +591,7 @@ function App() {
                 <small>Fale diretamente com nossa equipe.</small>
               </div>
 
-              <b>→</b>
+              <b>â†’</b>
             </button>
 
             <button
@@ -600,10 +602,10 @@ function App() {
 
               <div>
                 <strong>Fazer autoagendamento</strong>
-                <small>Escolha serviço, data e horário.</small>
+                <small>Escolha serviÃ§o, data e horÃ¡rio.</small>
               </div>
 
-              <b>→</b>
+              <b>â†’</b>
             </button>
           </div>
         </div>
