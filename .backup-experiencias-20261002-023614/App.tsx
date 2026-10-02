@@ -124,7 +124,6 @@ function App() {
             <a href="#especialidades" onClick={() => setMenuOpen(false)}>Especialidades</a>
             <a href="#transplante" onClick={() => setMenuOpen(false)}>Transplante Capilar</a>
             <a href="#equipe" onClick={() => setMenuOpen(false)}>Corpo Clínico</a>
-            <a href="/experiencias" onClick={() => setMenuOpen(false)}>Experiências</a>
             <a href="#atendimento" onClick={() => setMenuOpen(false)}>Convênios</a>
             <a
               href="#contato"
@@ -372,7 +371,7 @@ function App() {
               </p>
 
               <div className="doctor-actions">
-                <a className="btn btn-light" href="/experiencias">
+                <a className="btn btn-light" href="#contato">
                   Conheça a Dra. Andressa
                 </a>
 
@@ -516,7 +515,6 @@ function App() {
             <a href="#especialidades">Especialidades</a>
             <a href="#transplante">Transplante Capilar</a>
             <a href="#equipe">Corpo Clínico</a>
-            <a href="/experiencias">Experiências</a>
           </div>
 
           <div className="footer-links">
