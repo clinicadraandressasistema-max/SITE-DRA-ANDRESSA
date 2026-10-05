@@ -70,24 +70,12 @@ const destinations: Destination[] = [
     description:
       "Israel comp\u00f5e essa trajet\u00f3ria internacional com contato com diferentes contextos m\u00e9dicos, tecnologia e pr\u00e1tica profissional, ampliando perspectivas e repert\u00f3rio.",
   },
-  {
-    id: "estados-unidos",
-    label: "Estados Unidos",
-    country: "Estados Unidos",
-    region: "América do Norte",
-    lat: 39.8283,
-    lng: -98.5795,
-    folder: "experiencias/estados-unidos",
-    description:
-      "Os Estados Unidos também fazem parte da trajetória internacional da Dra. Andressa Dallarmi, reunindo experiências, conhecimento e contato com diferentes referências e contextos da medicina.",
-  },
 ];
 
 const routes = [
   { startLat: -25.4284, startLng: -49.2733, endLat: 40.4168, endLng: -3.7038 },
   { startLat: -25.4284, startLng: -49.2733, endLat: 38.7223, endLng: -9.1393 },
   { startLat: -25.4284, startLng: -49.2733, endLat: 31.7683, endLng: 35.2137 },
-  { startLat: -25.4284, startLng: -49.2733, endLat: 39.8283, endLng: -98.5795 },
 ];
 
 const pageCss = `
